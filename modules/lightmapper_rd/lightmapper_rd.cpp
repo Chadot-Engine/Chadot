@@ -304,6 +304,64 @@ void LightmapperRD::_sort_triangle_clusters(uint32_t p_cluster_size, uint32_t p_
 }
 
 Lightmapper::BakeError LightmapperRD::_blit_meshes_into_atlas(int p_max_texture_size, int p_denoiser_range, Vector<Ref<Image>> &albedo_images, Vector<Ref<Image>> &emission_images, AABB &bounds, Size2i &atlas_size, int &atlas_slices, float p_supersampling_factor, BakeStepFunc p_step_function, void *p_bake_userdata) {
+
+	// Per-Object Packing Mode
+	if (GLOBAL_GET("rendering/lightmapping/atlas/per_object_slices")) {
+		Vector<Size2i> sizes;
+
+		for (int m_i = 0; m_i < mesh_instances.size(); m_i++) {
+			MeshInstance &mi = mesh_instances.write[m_i];
+			Size2i s = Size2i(mi.data.albedo_on_uv2->get_width(), mi.data.albedo_on_uv2->get_height());
+			if (s.width > p_max_texture_size || s.height > p_max_texture_size) {
+				return BAKE_ERROR_TEXTURE_EXCEEDS_MAX_SIZE;
+			}
+			sizes.push_back(s);
+		}
+
+		atlas_slices = mesh_instances.size();
+		albedo_images.resize(atlas_slices);
+		emission_images.resize(atlas_slices);
+
+		if (p_step_function) {
+			if (p_step_function(0.1, RTR("Creating atlas slices"), p_bake_userdata, true)) {
+				return BAKE_ERROR_USER_ABORTED;
+			}
+		}
+
+		for (int i = 0; i < atlas_slices; i++) {
+			Ref<Image> albedo = Image::create_empty(sizes[i].width, sizes[i].height, false, Image::FORMAT_RGBA8);
+			albedo->set_as_black();
+			albedo_images.write[i] = albedo;
+
+			Ref<Image> emission = Image::create_empty(sizes[i].width, sizes[i].height, false, Image::FORMAT_RGBAH);
+			emission->set_as_black();
+			emission_images.write[i] = emission;
+		}
+
+		if (p_step_function) {
+			if (p_step_function(0.2, RTR("Blitting albedo and emission"), p_bake_userdata, true)) {
+				return BAKE_ERROR_USER_ABORTED;
+			}
+		}
+
+		for (int m_i = 0; m_i < mesh_instances.size(); m_i++) {
+			MeshInstance &mi = mesh_instances.write[m_i];
+			mi.offset = Vector2i(0, 0);
+			mi.slice = m_i;
+			albedo_images.write[mi.slice]->blit_rect(mi.data.albedo_on_uv2, Rect2i(Vector2i(), mi.data.albedo_on_uv2->get_size()), mi.offset);
+			emission_images.write[mi.slice]->blit_rect(mi.data.emission_on_uv2, Rect2(Vector2i(), mi.data.emission_on_uv2->get_size()), mi.offset);
+		}
+
+		Size2i max_sz(1, 1);
+		for (int i = 0; i < sizes.size(); i++) {
+			max_sz = max_sz.max(sizes[i]);
+		}
+		atlas_size = max_sz;
+
+		return BAKE_OK;
+	}
+
+	// Default Packer Path
 	Vector<Size2i> sizes;
 
 	for (int m_i = 0; m_i < mesh_instances.size(); m_i++) {
