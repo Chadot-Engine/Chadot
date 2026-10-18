@@ -88,11 +88,11 @@ env.add_source_files(sources, common_win)
 sources += res_obj
 
 if env["library_type"] == "static_library":
-    prog = env.add_library("#bin/godot", sources, PROGSUFFIX=env["PROGSUFFIX"])
+    prog = env.add_library("#bin/chadot", sources, PROGSUFFIX=env["PROGSUFFIX"])
 elif env["library_type"] == "shared_library":
-    prog = env.add_shared_library("#bin/godot", sources, PROGSUFFIX=env["PROGSUFFIX"])
+    prog = env.add_shared_library("#bin/chadot", sources, PROGSUFFIX=env["PROGSUFFIX"])
 else:
-    prog = env.add_program("#bin/godot", sources, PROGSUFFIX=env["PROGSUFFIX"])
+    prog = env.add_program("#bin/chadot", sources, PROGSUFFIX=env["PROGSUFFIX"])
 arrange_program_clean(prog)
 
 env.Depends(prog, "godot.manifest")
@@ -117,7 +117,7 @@ if env["windows_subsystem"] == "gui":
         env_wrap.Append(LINKFLAGS=["-Wl,--subsystem,console"])
         env_wrap.Append(LIBS=["version"])
 
-    prog_wrap = env_wrap.add_program("#bin/godot", common_win_wrap + res_wrap_obj, PROGSUFFIX=env["PROGSUFFIX_WRAP"])
+    prog_wrap = env_wrap.add_program("#bin/chadot", common_win_wrap + res_wrap_obj, PROGSUFFIX=env["PROGSUFFIX_WRAP"])
     arrange_program_clean(prog_wrap)
     env_wrap.Depends(prog_wrap, prog)
     sources += common_win_wrap + res_wrap_obj

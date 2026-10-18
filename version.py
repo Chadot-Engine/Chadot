@@ -1,5 +1,5 @@
 short_name = "chadot"
-name = "Chadot Game Engine"
+name = "Chadot Engine"
 major = 4
 minor = 8
 patch = 0

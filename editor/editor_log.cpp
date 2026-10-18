@@ -241,7 +241,7 @@ void EditorLog::_meta_clicked(const String &p_meta) {
 				// In official builds it's safe to use specific commit hash, so the line number is more accurate.
 				branch = GODOT_VERSION_HASH;
 			}
-			OS::get_singleton()->shell_open(vformat("https://github.com/godotengine/godot/blob/%s/%s#L%d", branch, path, line + 1));
+			OS::get_singleton()->shell_open(vformat("https://github.com/Chadot-Engine/chadot/blob/%s/%s#L%d", branch, path, line + 1));
 			return;
 		}
 
@@ -587,6 +587,7 @@ EditorLog::EditorLog() {
 	type_filter_map.insert(MSG_TYPE_EDITOR, editor_filter);
 
 	add_message("[color=#4765fc]" GODOT_VERSION_FULL_NAME " - A better dot :)[/color]", MSG_TYPE_STD_RICH);
+	add_message("[color=#657efc].:: Developed by Hamid.Memar ::.[/color]", MSG_TYPE_STD_RICH);
 
 	eh.errfunc = _error_handler;
 	eh.userdata = this;
