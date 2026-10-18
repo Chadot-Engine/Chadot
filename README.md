@@ -1,76 +1,47 @@
-# Godot Engine
+# Chadot Engine : Godot for Chads
 
-<p align="center">
-  <a href="https://godotengine.org">
-    <img src="misc/logo/logo_outlined.svg" width="400" alt="Godot Engine logo">
-  </a>
-</p>
+<img width="1840" height="1000" alt="Chadot Screenshot" src="https://github.com/user-attachments/assets/3258d011-fc4b-436f-8343-d71655c75fc8" />
 
-## 2D and 3D cross-platform game engine
+## What's Chadot?
 
-**[Godot Engine](https://godotengine.org) is a feature-packed, cross-platform
-game engine to create 2D and 3D games from a unified interface.** It provides a
-comprehensive set of [common tools](https://godotengine.org/features), so that
-users can focus on making games without having to reinvent the wheel. Games can
-be exported with one click to a number of platforms, including the major desktop
-platforms (Linux, macOS, Windows), mobile platforms (Android, iOS), as well as
-Web-based platforms and [consoles](https://godotengine.org/consoles).
+Chadot is a fork of the Godot Engine focused on adding critical missing features and giving developers more control over how the engine behaves.
+It provides a fully customizable rendering pipeline with support for systems such as PHLMS, ReLight, JenovaFX etc. allowing developers to build and tailor their rendering workflow to their needs.
 
-## Free, open source and community-driven
+> **Note:** The project is primarily focused on **Microsoft Windows**.   
+> While most features are expected to work on Linux, Linux support is not a primary development target.
 
-Godot is completely free and open source under the very permissive [MIT license](https://godotengine.org/license).
-No strings attached, no royalties, nothing. The users' games are theirs, down
-to the last line of engine code. Godot's development is fully independent and
-community-driven, empowering users to help shape their engine to match their
-expectations. It is supported by the [Godot Foundation](https://godot.foundation/)
-not-for-profit.
+## Current Features
+- Compatible with [Jenova Framework](https://github.com/Jenova-Framework)
+- Per-Light Hybrid Light Mapping and Shadow-Masking (PHLMS)
+- MeshInstanceEx3D and RayCompute3D Integration
+- Full GBuffer Access in Post-Processing Shaders
+- Custom Lightmap Support with ReLight Integration
 
-Before being open sourced in [February 2014](https://github.com/godotengine/godot/commit/0b806ee0fc9097fa7bda7ac0109191c9c5e0a1ac),
-Godot had been developed by [Juan Linietsky](https://github.com/reduz) and
-[Ariel Manzur](https://github.com/punto-) for several years as an in-house
-engine, used to publish several work-for-hire titles.
+### Work in Progress
+- New API and SDK for engine internals
+- DLSS 5 upscaling and neural rendering integration
+- ReLight lightmapper integration
+  
+## License
 
-![Screenshot of a 3D scene in the Godot Engine editor](https://raw.githubusercontent.com/godotengine/godot-design/master/screenshots/editor_tps_demo_1920x1080.jpg)
+**Chadot uses a mixed licensing model.**
 
-## Getting the engine
+The original Godot Engine codebase remains licensed under the terms of the MIT License. Any code inherited directly from Godot continues to follow its original license.
 
-### Binary downloads
+Additional features, modifications and components introduced by Chadot may be released under different licenses. Unless explicitly stated otherwise, changes and additions are considered to be licensed under MIT.
 
-Official binaries for the Godot editor and the export templates can be found
-[on the Godot website](https://godotengine.org/download).
+Some features may be licensed under the **PJPPL v1.0** or other licenses specified by the author. When a feature is added, license information is included in commit messages, source files or accompanying documentation. If no alternative license is explicitly specified, the code is considered to be licensed under the MIT License by default.
 
-### Compiling from source
+### Projekt Jenova Public Proprietary License (PJPPL v1.0)
+Code licensed under PJPPL v1.0 is publicly visible for transparency and integration with the Chadot source tree. However, visibility of the source code does not grant permission to copy, redistribute, modify, reuse or incorporate that code into other projects unless explicitly permitted by its license.
 
-[See the official docs](https://docs.godotengine.org/en/latest/engine_details/development/compiling)
-for compilation instructions for every supported platform.
+Features distributed under PJPPL v1.0 may only be used through official Chadot binaries provided by the author. Any use of the licensed code outside of those official distributions is prohibited unless prior written permission has been granted.
 
-## Community and contributing
+The terms of PJPPL v1.0 and other Chadot specific licenses may be revised in future versions.
 
-Godot is not only an engine but an ever-growing community of users and engine
-developers. The main community channels are listed [on the homepage](https://godotengine.org/community).
+## AI Policy
+Chadot is developed by a real developer who understands the engine, its architecture and the problems it aims to solve.
 
-The best way to get in touch with the core engine developers is to join the
-[Godot Contributors Chat](https://chat.godotengine.org).
+While AI tools can be useful for research, prototyping and exploring ideas, all development and design decisions are made by a human. I do not rely on AI generated code for the project's implementation, as I believe complex engine development still requires a level of understanding, judgment, and long term maintenance that current AI tools cannot reliably provide.
 
-To get started contributing to the project, see the [contributing guide](CONTRIBUTING.md).
-This document also includes guidelines for reporting bugs.
-
-## Documentation and demos
-
-The official documentation is hosted on [Read the Docs](https://docs.godotengine.org).
-It is maintained by the Godot community in its own [GitHub repository](https://github.com/godotengine/godot-docs).
-
-The [class reference](https://docs.godotengine.org/en/latest/classes/)
-is also accessible from the Godot editor.
-
-We also maintain official demos in their own [GitHub repository](https://github.com/godotengine/godot-demo-projects)
-as well as the [Asset Store](https://store.godotengine.org/).
-
-There are also a number of other
-[learning resources](https://docs.godotengine.org/en/latest/community/tutorials.html)
-provided by the community, such as text and video tutorials, demos, etc.
-Consult the [community channels](https://godotengine.org/community)
-for more information.
-
-[![Code Triagers Badge](https://www.codetriage.com/godotengine/godot/badges/users.svg)](https://www.codetriage.com/godotengine/godot)
-[![Translate on Weblate](https://hosted.weblate.org/widgets/godot-engine/-/godot/svg-badge.svg)](https://hosted.weblate.org/engage/godot-engine/?utm_source=widget)
+All code in Chadot is written and reviewed manually. **Pull requests and Issues containing AI generated code/content will not be accepted.**

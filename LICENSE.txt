@@ -1,3 +1,22 @@
+-- Chadot License --
+
+Copyright (c) 2024-present MemarDesign™ LLC. (Hamid.Memar)
+
+Chadot uses a mixed licensing model.
+The original Godot Engine codebase remains licensed under the terms of the MIT License. Any code inherited directly from Godot continues to follow its original license.
+Additional features, modifications and components introduced by Chadot may be released under different licenses. Unless explicitly stated otherwise, changes and additions are considered to be licensed under MIT.
+
+Some features may be licensed under the PJPPL v1.0 or other licenses specified by the author. When a feature is added, license information is included in commit messages, source files or accompanying documentation. If no alternative license is explicitly specified, the code is considered to be licensed under the MIT License by default.
+
+Code licensed under PJPPL v1.0 is publicly visible for transparency and auditing purposes only. However, visibility of the source code does not grant permission to copy, redistribute, modify, reuse or incorporate that code into other projects unless explicitly permitted by its license.
+
+Features distributed under PJPPL v1.0 may only be used through official Chadot binaries provided by the author. Any use of the licensed code outside of those official distributions is prohibited unless prior written permission has been granted.
+
+PJPPL and any future revisions of the license apply retroactively to all code, features, and components released under PJPPL. The latest version of the license supersedes all previous versions and applies to both past and future PJPPL licensed content unless explicitly stated otherwise.
+
+
+-- Godot License --
+
 Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md).
 Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.
 
