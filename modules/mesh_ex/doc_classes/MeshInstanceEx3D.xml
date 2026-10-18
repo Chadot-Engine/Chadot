@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="MeshInstanceEx3D" inherits="MeshInstance3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Node that instances a mesh and adds fast yet accurate UV lookup and texture sampling.
+	</brief_description>
+	<description>
+		[MeshInstanceEx3D] extends [MeshInstance3D] with two convenient features that are frequently needed in 3D games and editors.
+		- [b]UV lookup from a world position[/b] – after a ray-cast or any world-space query you can retrieve the UV that belongs to the triangle nearest to the hit point.
+		- [b]Color sampling from a texture[/b] – if you supply a [Texture2D], you can read the pixel color that corresponds to the UV returned by the lookup.
+
+		The node automatically rebuilds its internal cache when the mesh changes or when [code]invalidate_cache()[/code] is called. The cache can be tuned with [code]cache_division[/code], which determines the resolution of the 3D spatial grid used for acceleration.
+		[MeshInstanceEx3D] employs a hybrid optimization approach that combines brute-force techniques for lightweight meshes with spatial partitioning for high-poly meshes. [b]A larger division reduces the number of triangles per cell but increases memory usage.[/b]
+	</description>
+	<tutorials>
+		<link title="Watch Tutorial">https://www.youtube.com/@memardesign</link>
+	</tutorials>
+	<methods>
+		<method name="get_uv_at_position">
+			<return type="Vector2"/>
+			<param index="0" name="world_point" type="Vector3"/>
+			<description>
+				Returns the UV coordinates of the triangle that is geometrically closest to [code]world_point[/code].  
+				If the mesh has no geometry or no triangle is found, [code]Vector2(0, 0)[/code] is returned.
+			</description>
+		</method>
+		<method name="get_color_from_uv">
+			<return type="Color"/>
+			<param index="0" name="hit_uv" type="Vector2"/>
+			<description>
+				Returns the pixel color from the [code]id_map[/code] texture that corresponds to the UV [code]hit_uv[/code].  
+				If no [code]id_map[/code] is set or the texture cannot be read, a transparent color is returned.
+			</description>
+		</method>
+		<method name="invalidate_cache">
+			<return type="void"/>
+			<description>
+				Marks the internal triangle cache as dirty. The next call to [code]get_uv_at_position()[/code] will rebuild the cache.  
+				Call this method when the mesh resource changes at runtime (for example, when swapping meshes or modifying a mesh instance’s surface data).
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="cache_division" type="Vector3i" setter="set_cache_division" getter="get_cache_division">
+			Resolution of the 3D spatial grid used for spatial acceleration.
+		</member>
+		<member name="id_map" type="Texture2D" setter="set_id_map" getter="get_id_map">
+			Texture used for sampling pixel data that corresponds to the UV of a triangle hit. Useful for ID maps or custom data packed into a texture.
+		</member>
+	</members>
+</class>
