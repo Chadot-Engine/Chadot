@@ -3121,6 +3121,12 @@
 			The maximum number of rays that can be thrown per pass when baking dynamic object lighting in [LightmapProbe]s with [LightmapGI]. Depending on the scene, adjusting this value may result in higher GPU utilization when baking lightmaps, leading to faster bake times.
 			[b]Note:[/b] Using a value that is too high for your system can cause crashes due to the GPU being unresponsive for long periods of time, and the graphics driver being reset by the OS.
 		</member>
+		<member name="rendering/lightmapping/atlas/per_object_slices" type="bool" setter="" getter="" default="false">
+			If [code]true[/code], bypasses the default brute-force texture packer and assigns each baked mesh its own dedicated lightmap slice. Each slice is sized exactly to the mesh's UV2 dimensions, preserving full lightmap resolution and preventing smaller meshes from being crammed into underutilized power-of-two atlas regions.
+			This is particularly useful for large, pre-combined meshes where maximizing texel density is more important than minimizing texture memory usage.
+			[b]Note:[/b] Enabling this can increase the total memory footprint of the baked lightmap array, as slices are not shared between objects. It is recommended to leave this disabled if baking many small, individual meshes.
+			[b]Note:[/b] This property is read during the bake process. Changing it requires baking the [LightmapGI] again to apply.
+		</member>
 		<member name="rendering/lightmapping/bake_performance/max_transparency_rays" type="int" setter="" getter="" default="8">
 			The maximum number of retry rays that can be thrown per pass when hitting a transparent surface when baking lightmaps with [LightmapGI]. Depending on the scene, reducing this value may lead to faster bake times.
 			[b]Note:[/b] Using a value that is too high for your system can cause crashes due to the GPU being unresponsive for long periods of time, and the graphics driver being reset by the OS.

@@ -186,7 +186,9 @@ bool CompositorEffect::get_needs_normal_roughness() const {
 void CompositorEffect::set_needs_albedo(bool p_enabled) {
 	needs_albedo = p_enabled;
 	if (rid.is_valid()) {
-		RenderingServer::get_singleton()->compositor_effect_set_flag(rid, RSE::CompositorEffectFlags::COMPOSITOR_EFFECT_FLAG_NEEDS_ALBEDO, needs_albedo);
+		RenderingServer *rs = RenderingServer::get_singleton();
+		ERR_FAIL_NULL(rs);
+		rs->compositor_effect_set_flag(rid, RSE::CompositorEffectFlags::COMPOSITOR_EFFECT_FLAG_NEEDS_ALBEDO, needs_albedo);
 	}
 }
 bool CompositorEffect::get_needs_albedo() const {

@@ -69,6 +69,9 @@
 			}
 			[/codeblock]
 		</member>
+		<member name="needs_albedo" type="bool" setter="set_needs_albedo" getter="get_needs_albedo">
+			If [code]true[/code], the opaque geometry's raw unlit albedo is written to a separate buffer during the opaque pass, only applicable for the Forward+ renderer.
+		</member>
 		<member name="needs_separate_specular" type="bool" setter="set_needs_separate_specular" getter="get_needs_separate_specular">
 			If [code]true[/code] this triggers specular data being rendered to a separate buffer and combined after effects have been applied, only applicable for the Forward+ renderer.
 		</member>
