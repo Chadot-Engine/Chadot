@@ -1908,7 +1908,7 @@ void fragment_shader(in SceneData scene_data) {
 						float directionality = clamp(l1_len / l0_luminance, 0.0, 1.0);
 						float specular_intensity = directionality * lightmaps.data[ofs].normal_xform_and_specular_intensity[0][3] * 2.0;
 
-						light_compute(normal, L_view, view, 0.0, specular_light_color, true, 1.0, f0, roughness, metallic, specular_intensity, albedo, alpha, screen_uv, energy_compensation,
+						light_compute(normal, L_view, view, 0.0, uint(0), specular_light_color, true, 1.0, 1.0, f0, roughness, metallic, specular_intensity, albedo, alpha, screen_uv, energy_compensation,
 #ifdef LIGHT_BACKLIGHT_USED
 								backlight,
 #endif
@@ -2759,13 +2759,13 @@ void fragment_shader(in SceneData scene_data) {
 
 			float size_A = sc_use_directional_soft_shadows() ? directional_lights.data[i].size : 0.0;
 
-			light_compute(normal, directional_lights.data[i].direction, normalize(view), size_A,
+			light_compute(normal, directional_lights.data[i].direction, normalize(view), size_A, directional_lights.data[i].light_id,
 #ifndef DEBUG_DRAW_PSSM_SPLITS
 					directional_lights.data[i].color * directional_lights.data[i].energy,
 #else
 					directional_lights.data[i].color * directional_lights.data[i].energy * tint,
 #endif
-					true, shadow, f0, roughness, metallic, directional_lights.data[i].specular, albedo, alpha, screen_uv, energy_compensation,
+					true, shadow, shadow, f0, roughness, metallic, directional_lights.data[i].specular, albedo, alpha, screen_uv, energy_compensation,
 #ifdef LIGHT_BACKLIGHT_USED
 					backlight,
 #endif
@@ -2951,7 +2951,7 @@ void fragment_shader(in SceneData scene_data) {
 					continue; // Statically baked light and object uses lightmap, skip
 				}
 
-				light_process_area(light_index, vertex, view, normal, vertex_ddx, vertex_ddy, f0, roughness, metallic, scene_data.taa_frame_count, albedo, alpha, screen_uv, energy_compensation,
+				light_process_area(light_index, vertex, view, area_lights.data[light_index].light_id, normal, vertex_ddx, vertex_ddy, f0, roughness, metallic, scene_data.taa_frame_count, albedo, alpha, screen_uv, energy_compensation,
 #ifdef LIGHT_BACKLIGHT_USED
 						backlight,
 #endif

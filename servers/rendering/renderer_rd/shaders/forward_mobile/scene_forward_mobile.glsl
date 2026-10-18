@@ -1799,7 +1799,7 @@ void main() {
 						float directionality = clamp(l1_len / l0_luminance, 0.0, 1.0);
 						float specular_intensity = directionality * lightmaps.data[ofs].normal_xform_and_specular_intensity[0][3] * 2.0;
 
-						light_compute(normal, hvec3(L_view_highp), view, saturateHalf(0.0), specular_light_color, true, half(1.0), f0, roughness, metallic, half(specular_intensity), albedo, alpha,
+						light_compute(normal, hvec3(L_view_highp), view, saturateHalf(0.0), uint(0), specular_light_color, true, half(1.0), 1.0, f0, roughness, metallic, half(specular_intensity), albedo, alpha,
 								screen_uv, hvec3(1.0),
 #ifdef LIGHT_BACKLIGHT_USED
 								backlight,
@@ -2307,7 +2307,7 @@ void main() {
 			break;
 		}
 
-		light_process_area(light_index, vertex, view, normal, vertex_ddx, vertex_ddy, f0, roughness, metallic, scene_data.taa_frame_count, albedo, alpha, screen_uv, hvec3(1.0),
+		light_process_area(light_index, vertex, view, uint(0), normal, vertex_ddx, vertex_ddy, f0, roughness, metallic, scene_data.taa_frame_count, albedo, alpha, screen_uv, hvec3(1.0),
 #ifdef LIGHT_BACKLIGHT_USED
 				backlight,
 #endif
