@@ -1,9 +1,9 @@
-short_name = "godot"
-name = "Godot Engine"
+short_name = "chadot"
+name = "Chadot Game Engine"
 major = 4
 minor = 8
 patch = 0
 status = "beta"
 module_config = ""
-website = "https://godotengine.org"
+website = "https://chadotengine.github.io"
 docs = "latest"
