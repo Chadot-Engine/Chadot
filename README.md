@@ -16,6 +16,7 @@ It provides a fully customizable rendering pipeline with support for systems suc
 - MeshInstanceEx3D and RayCompute3D Integration
 - Full GBuffer Access in Post-Processing Shaders
 - Custom Lightmap Support with ReLight Integration
+- Native Lottie Vector Animation Support
 
 ### Work in Progress
 - New API and SDK for engine internals

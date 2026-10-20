@@ -1,0 +1,15 @@
+#!/usr/bin/env python
+from misc.utility.scons_hints import *
+
+Import("env")
+Import("env_modules")
+
+env_lottie = env_modules.Clone()
+
+env_lottie.Prepend(CPPPATH=["#thirdparty/thorvg/inc"])
+env_lottie.Append(CPPDEFINES=["TVG_STATIC"])
+
+module_obj = []
+
+env_lottie.add_source_files(module_obj, "*.cpp")
+env.modules_sources += module_obj

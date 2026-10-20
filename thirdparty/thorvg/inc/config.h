@@ -12,6 +12,9 @@
 //#define THORVG_WEBP_LOADER_SUPPORT
 //#define THORVG_JPG_LOADER_SUPPORT
 
+// Lottie loader support (required by modules/lottie).
+#define THORVG_LOTTIE_LOADER_SUPPORT
+
 // For internal debugging:
 //#define THORVG_LOG_ENABLED
 

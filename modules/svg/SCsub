@@ -29,7 +29,7 @@ thirdparty_sources = [
     "src/loaders/external_png/tvgPngLoader.cpp",
     # renderer common
     "src/renderer/tvgAccessor.cpp",
-    # "src/renderer/tvgAnimation.cpp",
+    "src/renderer/tvgAnimation.cpp",
     "src/renderer/tvgCanvas.cpp",
     "src/renderer/tvgFill.cpp",
     "src/renderer/tvgInitializer.cpp",
@@ -61,6 +61,17 @@ if env["module_webp_enabled"]:
 if env["module_jpg_enabled"]:
     thirdparty_sources += ["src/loaders/external_jpg/tvgJpgLoader.cpp"]
     env_svg.Append(CPPDEFINES=["THORVG_JPG_LOADER_SUPPORT"])
+if env["module_lottie_enabled"]:
+    thirdparty_sources += [
+        "src/loaders/lottie/tvgLottieLoader.cpp",
+        "src/loaders/lottie/tvgLottieModel.cpp",
+        "src/loaders/lottie/tvgLottieParser.cpp",
+        "src/loaders/lottie/tvgLottieParserHandler.cpp",
+        "src/loaders/lottie/tvgLottieBuilder.cpp",
+        "src/loaders/lottie/tvgLottieInterpolator.cpp",
+        "src/loaders/lottie/tvgLottieModifier.cpp",
+    ]
+    env_svg.Append(CPPDEFINES=["THORVG_LOTTIE_LOADER_SUPPORT"])
 
 thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
@@ -77,6 +88,7 @@ env_thirdparty.Prepend(
     CPPPATH=[
         thirdparty_dir + "src/common",
         thirdparty_dir + "src/loaders/svg",
+        thirdparty_dir + "src/loaders/lottie",
         thirdparty_dir + "src/renderer",
         thirdparty_dir + "src/renderer/sw_engine",
         thirdparty_dir + "src/loaders/raw",
@@ -93,6 +105,8 @@ if env["module_jpg_enabled"]:
     env_thirdparty.Prepend(CPPPATH=[thirdparty_dir + "src/loaders/external_jpg"])
     if env["builtin_libjpeg_turbo"]:
         env_thirdparty.Prepend(CPPPATH=["#thirdparty/libjpeg-turbo/src"])
+if env["module_lottie_enabled"]:
+    env_thirdparty.Prepend(CPPPATH=[thirdparty_dir + "src/loaders/lottie"])
 
 env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)
 env.modules_sources += thirdparty_obj
