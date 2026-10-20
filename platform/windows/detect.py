@@ -405,6 +405,11 @@ def configure_msvc(env: "SConsEnvironment"):
     if env["arch"] == "x86_64":
         env.AppendUnique(CPPDEFINES=["_WIN64"])
 
+    # Def File
+    def_file = os.path.join(env.Dir("#").abspath, "chadot.def")
+    if os.path.exists(def_file):
+        env.AppendUnique(LINKFLAGS=["/DEF:" + def_file])
+
     # Sanitizers
     prebuilt_lib_extra_suffix = ""
     if env["use_asan"]:

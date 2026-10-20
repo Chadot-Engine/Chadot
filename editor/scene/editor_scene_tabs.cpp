@@ -188,6 +188,8 @@ void EditorSceneTabs::_update_context_menu(int p_index) {
 		DISABLE_LAST_OPTION_IF(no_root_node);
 		scene_tabs_context_menu->add_shortcut(ED_GET_SHORTCUT("editor/save_scene_as"), SCENE_SAVE_AS_SCENE);
 		DISABLE_LAST_OPTION_IF(no_root_node);
+		scene_tabs_context_menu->add_item(TTR("Reload Scene"), SCENE_RELOAD_SCENE);
+		DISABLE_LAST_OPTION_IF(no_root_node);
 	}
 
 	bool has_unsaved_scenes = false;

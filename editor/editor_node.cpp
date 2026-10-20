@@ -3654,6 +3654,13 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			}
 		} break;
 
+		case EditorSceneTabs::SCENE_RELOAD_SCENE: {
+			const String scene_path = editor_data.get_scene_path(scene_tabs->get_option_tab());
+			if (!scene_path.is_empty()) {
+				reload_scene(scene_path);
+			}
+		} break;
+
 		case SCENE_SAVE_ALL_SCENES: {
 			_save_all_scenes();
 		} break;
