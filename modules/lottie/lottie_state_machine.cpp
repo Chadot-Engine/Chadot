@@ -5,7 +5,7 @@
 /*                             CHADOT ENGINE                              */
 /*                    https://chadotengine.github.io                      */
 /**************************************************************************/
-/* Copyright (c) 2024-present MemarDesign LLC.                            */
+/* Copyright (c) 2024-present MemarDesign LLC. (Hamid.Memar)              */
 /* Copyright (c) 2025 Godot Lottie Contributors.                          */
 /**************************************************************************/
 
