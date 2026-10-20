@@ -13,7 +13,8 @@ It provides a fully customizable rendering pipeline with support for systems suc
 ## Current Features
 - Compatible with [Jenova Framework](https://github.com/Jenova-Framework)
 - Per-Light Hybrid Light Mapping and Shadow-Masking (PHLMS)
-- MeshInstanceEx3D and RayCompute3D Integration
+- MeshInstanceEx3D (aka RayCompute3D) Integration
+- GameRecorder3D Integration for Cinematic/Replay
 - Full GBuffer Access in Post-Processing Shaders
 - Custom Lightmap Support with ReLight Integration
 - Native Lottie Vector Animation Support

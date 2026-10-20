@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="GameRecorder3D" inherits="Node3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		A 3D node that records its children's transformations at runtime and exports the captured data to the proprietary Jenova Frame (.jframe) binary format.
+	</brief_description>
+	<description>
+		[GameRecorder3D] is a node that captures a Chadot scene and exports it to third-party DCC tools for cinematic or simulation use cases.
+
+		For example, you can create a car in DCC, import it into Chadot, set up car physics, drive it, and let [GameRecorder3D] capture the motion of the simulation. You can then load the captured data back into DCC for car animation.
+		It can also be used for in-engine replay but the importer is [b]not implemented yet[/b].
+
+		Currently, [GameRecorder3D] supports capturing all [Node3D] driven nodes, including physics bodies, as well as bones and skeleton animation.
+	</description>
+	<tutorials>
+		<link title="Watch Tutorial">https://www.youtube.com/@memardesign</link>
+	</tutorials>
+	<methods>
+		<method name="write_collected_frames">
+			<return type="void"/>
+			<description>
+				Writes the collected frames from memory to disk. Use this function only if the game does not quit gracefully.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="capture_mode" type="CaptureMode" setter="set_capture_mode" getter="get_capture_mode">
+			Determines when frames are captured. See [enum CaptureMode].
+		</member>
+		<member name="cache_mode" type="CacheMode" setter="set_cache_mode" getter="get_cache_mode">
+			Determines where captured frames are stored before being written out. See [enum CacheMode].
+		</member>
+		<member name="output_directory" type="String" setter="set_output_directory" getter="get_output_directory">
+			The directory path where captured frame data is written.
+		</member>
+		<member name="capture_target_list" type="bool" setter="set_capture_target_list" getter="get_capture_target_list">
+			If [code]true[/code], captures the nodes in the target list. Feature is [b]not implemented yet[/b].
+		</member>
+		<member name="capture_children" type="bool" setter="set_capture_children" getter="get_capture_children">
+			If [code]true[/code], captures all child nodes of this node.
+		</member>
+	</members>
+	<constants>
+		<constant name="CAPTURE_DISABLED" value="0" enum="CaptureMode">
+			Capture is turned off.
+		</constant>
+		<constant name="CAPTURE_RENDER_SYNC" value="1" enum="CaptureMode">
+			Frames are captured in sync with rendering.
+		</constant>
+		<constant name="CAPTURE_PHYSICS_SYNC" value="2" enum="CaptureMode">
+			Frames are captured in sync with the physics tick.
+		</constant>
+		<constant name="CACHE_INMEMORY" value="0" enum="CacheMode">
+			Frames are buffered in memory. Faster, but uses more RAM.
+		</constant>
+		<constant name="CACHE_ONDISK" value="1" enum="CacheMode">
+			Frames are streamed to disk as they are captured.
+		</constant>
+	</constants>
+</class>
