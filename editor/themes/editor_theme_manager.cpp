@@ -360,7 +360,7 @@ EditorThemeManager::ThemeConfiguration EditorThemeManager::_create_theme_config(
 			} else { // Default
 				preset_accent_color = Color("#4765fc");
 				preset_base_color = Color("#0b0b0c");
-				preset_contrast = -0.2;
+				preset_contrast = -0.5;
 			}
 
 			config.accent_color = preset_accent_color;
