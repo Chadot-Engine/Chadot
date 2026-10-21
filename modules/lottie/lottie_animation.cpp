@@ -795,6 +795,8 @@ void LottieAnimation::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_selected_dotlottie_animation", "id_or_path"), &LottieAnimation::set_selected_dotlottie_animation);
 	ClassDB::bind_method(D_METHOD("get_selected_dotlottie_animation"), &LottieAnimation::get_selected_dotlottie_animation);
 
+	ClassDB::bind_method(D_METHOD("load_from_buffer", "data", "compressed"), &LottieAnimation::load_from_buffer);
+
 	ClassDB::bind_method(D_METHOD("set_playing", "playing"), &LottieAnimation::set_playing);
 	ClassDB::bind_method(D_METHOD("is_playing"), &LottieAnimation::is_playing);
 
@@ -1824,6 +1826,62 @@ void LottieAnimation::set_selected_dotlottie_animation(const String &id) {
 
 String LottieAnimation::get_selected_dotlottie_animation() const {
 	return selected_dotlottie_animation;
+}
+
+void LottieAnimation::load_from_buffer(const PackedByteArray &data, bool compressed) {
+	if (data.is_empty()) {
+		ERR_PRINT("load_from_buffer: empty data");
+		return;
+	}
+
+	// Minimal Cache Mechansiim
+	uint64_t h = 1469598103934665603ull;
+	const uint8_t *bytes = data.ptr();
+	const int64_t sz = data.size();
+	for (int64_t i = 0; i < sz; ++i) {
+		h ^= (uint64_t)bytes[i];
+		h *= 1099511628211ull;
+	}
+	h ^= (uint64_t)sz;
+	h *= 1099511628211ull;
+
+	const String cache_root = String("user://lottie_cache/_buffers");
+	DirAccess::make_dir_recursive_absolute(ProjectSettings::get_singleton()->globalize_path(cache_root));
+
+	const String ext = compressed ? String(".lottie") : String(".json");
+	const String cache_rel = cache_root.path_join(String::num_uint64(h) + ext);
+
+	if (!FileAccess::exists(cache_rel)) {
+		Ref<FileAccess> f = FileAccess::open(cache_rel, FileAccess::WRITE);
+		if (f.is_null()) {
+			ERR_PRINT("load_from_buffer: failed to write cache file: " + cache_rel);
+			return;
+		}
+		f->store_buffer(data);
+		f->flush();
+		f->close();
+	}
+
+	if (!compressed) {
+		sm_animation_ids.clear();
+		sm_machine_names.clear();
+		sm_states_by_machine.clear();
+		sm_anim_inner_paths.clear();
+		sm_state_segments_by_machine.clear();
+		active_animation_id = String();
+		active_state_machine = String();
+		active_state = String();
+		notify_property_list_changed();
+	}
+
+	animation_path = cache_rel;
+
+	if (is_inside_tree()) {
+		_load_animation(cache_rel);
+		if (playing) {
+			play();
+		}
+	}
 }
 
 void LottieAnimation::set_playing(bool p_playing) {

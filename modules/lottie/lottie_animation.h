@@ -206,6 +206,8 @@ public:
 	void set_selected_dotlottie_animation(const String &id);
 	String get_selected_dotlottie_animation() const;
 
+	void load_from_buffer(const PackedByteArray &data, bool compressed);
+
 	void set_playing(bool p_playing);
 	bool is_playing() const;
 
