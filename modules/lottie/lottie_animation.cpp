@@ -1165,6 +1165,9 @@ void LottieAnimation::_render_frame() {
 	if (!canvas || !animation || !picture || !buffer) {
 		return;
 	}
+	if (render_size.x <= 0 || render_size.y <= 0) {
+		return;
+	}
 	// Skip if nothing changed and we've already drawn once
 	int qf_now = _quantized_frame_index();
 	if (first_frame_drawn && !pending_resize && qf_now == last_rendered_qf) {
@@ -1185,8 +1188,9 @@ void LottieAnimation::_render_frame() {
 	// Set animation frame
 	animation->frame(current_frame);
 
+	memset(buffer, 0, (size_t)render_size.x * (size_t)render_size.y * sizeof(uint32_t));
 	canvas->update();
-	canvas->draw(true);
+	canvas->draw(false);
 	canvas->sync();
 
 	// Copy buffer to image (reuse persistent pixel_bytes to avoid allocations)
