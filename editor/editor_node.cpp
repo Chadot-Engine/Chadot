@@ -4233,6 +4233,14 @@ void EditorNode::_tool_menu_option(int p_idx) {
 	}
 }
 
+void EditorNode::_import_menu_option(int p_idx) {
+	if (import_menu->get_item_text(p_idx) == TTRC("Import Jenova Frame Sequence...")) {
+		if (Engine::get_singleton()->has_singleton("JenovaFrameImporter")) {
+			Engine::get_singleton()->get_singleton_object("JenovaFrameImporter")->call("open_import_dialog");
+		}
+	}
+}
+
 void EditorNode::_export_as_menu_option(int p_idx) {
 	if (p_idx == 0) { // MeshLibrary
 		current_menu_option = FILE_EXPORT_MESH_LIBRARY;
@@ -8168,6 +8176,15 @@ void EditorNode::_build_file_menu(bool p_dark_mode) {
 	file_menu->add_shortcut(ED_GET_SHORTCUT("editor/quick_open_scene"), SCENE_QUICK_OPEN_SCENE);
 	file_menu->add_shortcut(ED_GET_SHORTCUT("editor/quick_open_script"), SCENE_QUICK_OPEN_SCRIPT);
 	file_menu->add_separator();
+
+	if (!import_menu) {
+		import_menu = memnew(PopupMenu);
+#ifdef MODULE_GAME_RECORDER_3D_ENABLED
+		import_menu->add_item(TTRC("Import Jenova Frame Sequence..."), FILE_IMPORT_JENOVA_FRAME);
+#endif
+		import_menu->connect("index_pressed", callable_mp(this, &EditorNode::_import_menu_option));
+	}
+	file_menu->add_submenu_node_item(TTRC("Import..."), import_menu, SCENE_IMPORT);
 
 	if (!export_as_menu) {
 		export_as_menu = memnew(PopupMenu);

@@ -159,6 +159,7 @@ public:
 		SCENE_QUICK_OPEN,
 		SCENE_QUICK_OPEN_SCENE,
 		SCENE_QUICK_OPEN_SCRIPT,
+		SCENE_IMPORT,
 		SCENE_EXPORT_AS,
 		SCENE_UNDO,
 		SCENE_REDO,
@@ -167,6 +168,10 @@ public:
 		SCENE_CLOSE_ALL,
 		SCENE_QUIT,
 
+		// Importers
+		FILE_IMPORT_JENOVA_FRAME,
+
+		// Exporters
 		FILE_EXPORT_MESH_LIBRARY,
 
 		// Project menu.
@@ -357,6 +362,7 @@ private:
 	PopupMenu *settings_menu = nullptr;
 	PopupMenu *help_menu = nullptr;
 	PopupMenu *tool_menu = nullptr;
+	PopupMenu *import_menu = nullptr;
 	PopupMenu *export_as_menu = nullptr;
 	Button *export_button = nullptr;
 
@@ -574,6 +580,7 @@ private:
 	void _check_system_theme_changed();
 
 	void _tool_menu_option(int p_idx);
+	void _import_menu_option(int p_idx);
 	void _export_as_menu_option(int p_idx);
 	void _update_file_menu_opened();
 	void _palette_quick_open_dialog();
