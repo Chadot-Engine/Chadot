@@ -35,6 +35,11 @@
 		</method>
 	</methods>
 	<members>
+		<member name="material_override" type="Material" setter="set_material_override" getter="get_material_override">
+			Overrides the material used to render every mesh surface drawn with this environment. This is a per-viewport override applied at draw time, only viewports whose camera resolves to this [Environment] (via [member Camera3D.environment] or [member WorldEnvironment]) are affected, and the override is applied on top of any per-instance [member GeometryInstance3D.material_override]. This is useful for rendering data-visualization passes into a [SubViewport] where every surface must use a special shader.
+			[b]Note:[/b] This property is only supported in the Forward+ rendering method, not Mobile or Compatibility.
+			[b]Note:[/b] Shadow passes and reflection probe captures ignore this override and continue to use the original materials.
+		</member>
 		<member name="adjustment_brightness" type="float" setter="set_adjustment_brightness" getter="get_adjustment_brightness" default="1.0">
 			Applies a simple brightness adjustment to the rendered image after tonemaping. To adjust scene brightness use [member tonemap_exposure] instead, which is applied before tonemapping and thus less prone to issues with bright colors. Effective only if [member adjustment_enabled] is [code]true[/code].
 		</member>

@@ -144,6 +144,15 @@ bool RendererSceneRender::is_environment(RID p_rid) const {
 	return environment_storage.is_environment(p_rid);
 }
 
+// material override
+void RendererSceneRender::environment_set_material_override(RID p_env, RID p_material) {
+	environment_storage.environment_set_material_override(p_env, p_material);
+}
+
+RID RendererSceneRender::environment_get_material_override(RID p_env) const {
+	return environment_storage.environment_get_material_override(p_env);
+}
+
 // background
 
 void RendererSceneRender::environment_set_background(RID p_env, RSE::EnvironmentBG p_bg) {

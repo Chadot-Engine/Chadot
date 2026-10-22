@@ -164,6 +164,10 @@ public:
 	virtual RID environment_allocate() = 0;
 	virtual void environment_initialize(RID p_rid) = 0;
 
+	// Material Override
+	virtual void environment_set_material_override(RID p_env, RID p_material) = 0;
+	virtual RID environment_get_material_override(RID p_env) const = 0;
+
 	// Background
 	virtual void environment_set_background(RID p_env, RSE::EnvironmentBG p_bg) = 0;
 	virtual void environment_set_sky(RID p_env, RID p_sky) = 0;

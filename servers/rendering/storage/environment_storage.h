@@ -66,6 +66,9 @@ private:
 		// Note, we capture and store all environment parameters received from Godot here.
 		// Not all renderers support all effects and should just ignore the bits they don't support.
 
+		// Material Override
+		RID material_override;
+
 		// Background
 		RSE::EnvironmentBG background = RSE::ENV_BG_CLEAR_COLOR;
 		RID sky;
@@ -197,6 +200,10 @@ public:
 	bool is_environment(RID p_environment) const {
 		return environment_owner.owns(p_environment);
 	}
+
+	// Material Override
+	void environment_set_material_override(RID p_env, RID p_material);
+	RID environment_get_material_override(RID p_env) const;
 
 	// Background
 	void environment_set_background(RID p_env, RSE::EnvironmentBG p_bg);

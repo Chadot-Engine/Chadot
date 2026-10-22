@@ -857,6 +857,9 @@ public:
 
 	FUNCRIDSPLIT(environment)
 
+	FUNC2(environment_set_material_override, RID, RID)
+	FUNC1RC(RID, environment_get_material_override, RID)
+
 	FUNC2(environment_set_background, RID, RSE::EnvironmentBG)
 	FUNC2(environment_set_sky, RID, RID)
 	FUNC2(environment_set_sky_custom_fov, RID, float)

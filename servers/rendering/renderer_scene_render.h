@@ -111,6 +111,10 @@ public:
 
 	bool is_environment(RID p_env) const;
 
+	// Material Override
+	void environment_set_material_override(RID p_env, RID p_material);
+	RID environment_get_material_override(RID p_env) const;
+
 	// Background
 	void environment_set_background(RID p_env, RSE::EnvironmentBG p_bg);
 	void environment_set_sky(RID p_env, RID p_sky);

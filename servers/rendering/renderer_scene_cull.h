@@ -1218,6 +1218,10 @@ public:
 
 	PASS1RC(bool, is_environment, RID)
 
+	// Material Override
+	PASS2(environment_set_material_override, RID, RID)
+	PASS1RC(RID, environment_get_material_override, RID) 
+
 	// Background
 	PASS2(environment_set_background, RID, RSE::EnvironmentBG)
 	PASS2(environment_set_sky, RID, RID)

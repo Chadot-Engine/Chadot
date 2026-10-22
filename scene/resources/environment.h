@@ -34,6 +34,7 @@
 #include "scene/resources/texture.h"
 
 class Sky;
+class Material;
 
 class Environment : public Resource {
 	GDCLASS(Environment, Resource);
@@ -91,6 +92,9 @@ public:
 
 private:
 	RID environment;
+
+	// Material Override
+	Ref<Material> material_override;
 
 	// Background
 	BGMode bg_mode = BG_CLEAR_COLOR;
@@ -234,6 +238,10 @@ protected:
 
 public:
 	virtual RID get_rid() const override;
+
+	// Material Override
+	void set_material_override(const Ref<Material> &p_material);
+	Ref<Material> get_material_override() const;
 
 	// Background
 	void set_background(BGMode p_bg);

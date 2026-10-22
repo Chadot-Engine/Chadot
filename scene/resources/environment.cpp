@@ -43,6 +43,16 @@ RID Environment::get_rid() const {
 	return environment;
 }
 
+// Material Override
+void Environment::set_material_override(const Ref<Material> &p_material) {
+	material_override = p_material;
+	RS::get_singleton()->environment_set_material_override(environment, p_material.is_valid() ? p_material->get_rid() : RID());
+}
+
+Ref<Material> Environment::get_material_override() const {
+	return material_override;
+}
+
 // Background
 
 void Environment::set_background(BGMode p_bg) {
@@ -1240,6 +1250,13 @@ bool Environment::_set(const StringName &p_name, const Variant &p_value) {
 #endif
 
 void Environment::_bind_methods() {
+
+	// Material Override
+	ClassDB::bind_method(D_METHOD("set_material_override", "material"), &Environment::set_material_override);
+	ClassDB::bind_method(D_METHOD("get_material_override"), &Environment::get_material_override);
+
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "material_override", PROPERTY_HINT_RESOURCE_TYPE, "Material"), "set_material_override", "get_material_override");
+
 	// Background
 
 	ClassDB::bind_method(D_METHOD("set_background", "mode"), &Environment::set_background);
