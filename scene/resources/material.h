@@ -937,4 +937,18 @@ public:
 	virtual Shader::Mode get_shader_mode() const override { return Shader::MODE_CANVAS_ITEM; }
 };
 
+// Exposed Material Identifiers
+class ExposedMaterial2D : public Material {
+	GDCLASS(ExposedMaterial2D, Material)
+};
+class ExposedMaterial3D : public Material {
+	GDCLASS(ExposedMaterial3D, Material)
+};
+class ExposedShaderMaterial2D : public ShaderMaterial {
+	GDCLASS(ExposedShaderMaterial2D, ShaderMaterial)
+};
+class ExposedShaderMaterial3D : public ShaderMaterial {
+	GDCLASS(ExposedShaderMaterial3D, ShaderMaterial)
+};
+
 //////////////////////
