@@ -260,12 +260,6 @@ env.CommandNoCache(
     env.Run(core_builders.make_certs_header),
 )
 
-# Authors
-env.CommandNoCache("#core/authors.gen.h", "#AUTHORS.md", env.Run(core_builders.make_authors_header))
-
-# Donors
-env.CommandNoCache("#core/donors.gen.h", "#DONORS.md", env.Run(core_builders.make_donors_header))
-
 # License
 env.CommandNoCache(
     "#core/license.gen.h", ["#COPYRIGHT.txt", "#LICENSE.txt"], env.Run(core_builders.make_license_header)

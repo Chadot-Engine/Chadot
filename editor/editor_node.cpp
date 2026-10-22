@@ -4026,7 +4026,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			OS::get_singleton()->shell_open(GODOT_VERSION_DOCS_URL "/");
 		} break;
 		case HELP_FORUM: {
-			OS::get_singleton()->shell_open("https://forum.godotengine.org/");
+			OS::get_singleton()->shell_open("https://github.com/Chadot-Engine/chadot/discussions");
 		} break;
 		case HELP_REPORT_A_BUG: {
 			OS::get_singleton()->shell_open("https://github.com/Chadot-Engine/chadot/issues");
@@ -4039,11 +4039,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			OS::get_singleton()->shell_open("https://discord.gg/p7zAf6aBPz");
 		} break;
 		case HELP_ABOUT: {
-			if (!about) {
-				about = memnew(EditorAbout);
-				gui_base->add_child(about);
-			}
-			about->popup_centered(Size2(780, 500) * EDSCALE);
+			EditorAbout::create(gui_base);
 		} break;
 		case HELP_LEARN_ABOUT_JENOVA: {
 			OS::get_singleton()->shell_open("https://jenova-framework.github.io");

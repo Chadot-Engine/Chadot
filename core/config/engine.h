@@ -194,9 +194,7 @@ public:
 #endif
 
 	Dictionary get_version_info() const;
-	Dictionary get_author_info() const;
 	TypedArray<Dictionary> get_copyright_info() const;
-	Dictionary get_donor_info() const;
 	Dictionary get_license_info() const;
 	String get_license_text() const;
 

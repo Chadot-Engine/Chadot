@@ -414,11 +414,7 @@ void ProjectManager::_select_main_view(int p_id) {
 }
 
 void ProjectManager::_show_about() {
-	if (!about_dialog) {
-		about_dialog = memnew(EditorAbout);
-		add_child(about_dialog);
-	}
-	about_dialog->popup_centered(Size2(780, 500) * EDSCALE);
+	EditorAbout::create(this);
 }
 
 void ProjectManager::_open_asset_library_confirmed() {

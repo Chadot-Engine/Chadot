@@ -30,48 +30,27 @@
 
 #include "editor_about.h"
 
-#include "core/authors.gen.h"
-#include "core/donors.gen.h"
 #include "core/license.gen.h"
 #include "core/object/callable_mp.h"
-#include "core/os/os.h"
-#include "editor/editor_node.h"
 #include "editor/editor_string_names.h"
-#include "editor/gui/credits_roll.h"
-#include "editor/gui/editor_toaster.h"
 #include "editor/gui/editor_version_button.h"
-#include "editor/run/editor_run_bar.h"
 #include "editor/themes/editor_scale.h"
-#include "scene/gui/item_list.h"
+#include "scene/gui/margin_container.h"
 #include "scene/gui/rich_text_label.h"
-#include "scene/gui/scroll_container.h"
-#include "scene/gui/separator.h"
 #include "scene/gui/split_container.h"
 #include "scene/gui/tab_container.h"
+#include "scene/gui/center_container.h"
+#include "scene/gui/subviewport_container.h"
 #include "scene/gui/texture_rect.h"
 #include "scene/gui/tree.h"
-#include "scene/main/scene_tree.h"
-#include "scene/resources/style_box.h"
+#include "scene/2d/camera_2d.h"
+
+#include "modules/lottie/lottie_animation.h"
+
+#include "misc/logo/about_animation.ach"
 
 void EditorAbout::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_TRANSLATION_CHANGED: {
-			_about_text_label->set_text(
-					String(U"© 2014-present ") + TTR("Godot Engine contributors") + ".\n" +
-					String(U"© 2007-2014 Juan Linietsky, Ariel Manzur.\n"));
-
-			_project_manager_label->set_text(TTR("Project Manager", "Job Title"));
-
-			for (ItemList *il : name_lists) {
-				for (int i = 0; i < il->get_item_count(); i++) {
-					const Variant val = il->get_item_metadata(i);
-					if (val.get_type() == Variant::STRING) {
-						il->set_item_tooltip(i, val.operator String() + "\n\n" + TTR("Double-click to open in browser."));
-					}
-				}
-			}
-		} break;
-
 		case NOTIFICATION_THEME_CHANGED: {
 			const Ref<Font> font = get_theme_font(SNAME("source"), EditorStringName(EditorFonts));
 			const int font_size = get_theme_font_size(SNAME("source_size"), EditorStringName(EditorFonts));
@@ -89,15 +68,6 @@ void EditorAbout::_notification(int p_what) {
 			license_text_label->end_bulk_theme_override();
 
 			_logo->set_texture(get_editor_theme_icon(SNAME("Logo")));
-
-			for (ItemList *il : name_lists) {
-				for (int i = 0; i < il->get_item_count(); i++) {
-					if (il->get_item_metadata(i)) {
-						il->set_item_icon(i, get_theme_icon(SNAME("ExternalLink"), EditorStringName(EditorIcons)));
-						il->set_item_icon_modulate(i, get_theme_color(SNAME("font_disabled_color"), EditorStringName(Editor)));
-					}
-				}
-			}
 		} break;
 	}
 }
@@ -108,187 +78,60 @@ void EditorAbout::_license_tree_selected() {
 	_tpl_text->set_text(selected->get_metadata(0));
 }
 
-void EditorAbout::_credits_visibility_changed() {
-	if (!credits_roll->is_visible()) {
-		credits_roll->queue_free();
-		credits_roll = nullptr;
-
-		show();
-	}
-}
-
-void EditorAbout::_item_activated(int p_idx, ItemList *p_il) {
-	const Variant val = p_il->get_item_metadata(p_idx);
-	if (val.get_type() == Variant::STRING) {
-		OS::get_singleton()->shell_open(val);
-	} else {
-		// Easter egg! :D
-		if (EditorRunBar::get_singleton() && EditorRunBar::get_singleton()->is_playing()) {
-			// Don't allow if the game is running, as it will look weird if it's embedded.
-			EditorToaster::get_singleton()->popup_str(TTR("No distractions for this, close that game first."));
-			return;
-		}
-
-		if (!credits_roll) {
-			credits_roll = memnew(CreditsRoll);
-			credits_roll->connect("visibility_changed", callable_mp(this, &EditorAbout::_credits_visibility_changed));
-			get_tree()->get_root()->add_child(credits_roll);
-		}
-		credits_roll->roll_credits();
-		hide();
-	}
-}
-
-void EditorAbout::_item_list_resized(ItemList *p_il) {
-	p_il->set_fixed_column_width(p_il->get_size().x / 3.0 - 16 * EDSCALE * 2.5); // Weird. Should be 3.0 and that's it?.
-}
-
-Label *EditorAbout::_create_section(Control *p_parent, const String &p_name, const char *const *p_src, BitField<SectionFlags> p_flags) {
-	Label *lbl = memnew(Label(p_name));
-	lbl->set_theme_type_variation("HeaderSmall");
-	lbl->set_focus_mode(Control::FOCUS_ACCESSIBILITY);
-	p_parent->add_child(lbl);
-
-	ItemList *il = memnew(ItemList);
-	il->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
-	il->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-	il->set_same_column_width(true);
-	il->set_auto_height(true);
-	il->set_max_columns(p_flags.has_flag(FLAG_SINGLE_COLUMN) ? 1 : 16);
-	il->add_theme_constant_override("h_separation", 16 * EDSCALE);
-
-	const char *const *names_ptr = p_src;
-	bool has_website = false;
-	if (p_flags.has_flag(FLAG_ALLOW_WEBSITE)) {
-		il->connect(SceneStringName(resized), callable_mp(this, &EditorAbout::_item_list_resized).bind(il));
-		il->connect(SceneStringName(focus_exited), callable_mp(il, &ItemList::deselect_all));
-
-		while (*names_ptr) {
-			const String name = String::utf8(*names_ptr++);
-			const String identifier = name.get_slicec('<', 0);
-			const String website = name.get_slice_count("<") == 1 ? "" : name.get_slicec('<', 1).trim_suffix(">");
-
-			il->add_item(identifier, nullptr, !website.is_empty());
-
-			if (website.is_empty()) {
-				il->set_item_tooltip_enabled(-1, false);
-			} else {
-				il->set_item_metadata(-1, website);
-				has_website = true;
-			}
-
-			if (!*names_ptr && name.contains(" anonymous ")) {
-				il->set_item_disabled(-1, true);
-			}
-		}
-	} else {
-		while (*names_ptr) {
-			il->add_item(String::utf8(*names_ptr++), nullptr, false);
-			il->set_item_tooltip_enabled(-1, false);
-		}
-	}
-
-	if ((has_website && p_flags.has_flag(FLAG_ALLOW_WEBSITE)) || p_flags.has_flag(FLAG_EASTER_EGG)) {
-		Ref<StyleBoxEmpty> empty_stylebox = memnew(StyleBoxEmpty);
-		il->add_theme_style_override("focus", empty_stylebox);
-		il->add_theme_style_override("selected", empty_stylebox);
-
-		il->connect("item_activated", callable_mp(this, &EditorAbout::_item_activated).bind(il));
-	} else {
-		il->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);
-		il->set_focus_mode(Control::FOCUS_NONE);
-	}
-
-	name_lists.append(il);
-
-	p_parent->add_child(il);
-
-	HSeparator *hs = memnew(HSeparator);
-	hs->set_modulate(Color(0, 0, 0, 0));
-	p_parent->add_child(hs);
-
-	return lbl;
-}
-
 EditorAbout::EditorAbout() {
-	set_title(TTRC("Thanks from the Godot community!"));
 	set_hide_on_ok(true);
 
-	VBoxContainer *vbc = memnew(VBoxContainer);
-	add_child(vbc);
+	MarginContainer *main_margin = memnew(MarginContainer);
+	main_margin->add_theme_constant_override("margin_left", 10 * EDSCALE);
+	main_margin->add_theme_constant_override("margin_right", 10 * EDSCALE);
+	main_margin->add_theme_constant_override("margin_top", 10 * EDSCALE);
+	main_margin->add_theme_constant_override("margin_bottom", 0);
+	add_child(main_margin);
 
-	HBoxContainer *hbc = memnew(HBoxContainer);
-	hbc->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-	hbc->set_alignment(BoxContainer::ALIGNMENT_CENTER);
-	hbc->add_theme_constant_override("separation", 30 * EDSCALE);
-	vbc->add_child(hbc);
+	VBoxContainer *vbc = memnew(VBoxContainer);
+	vbc->add_theme_constant_override("separation", 20 * EDSCALE);
+	main_margin->add_child(vbc);
+
+	CenterContainer *logo_cc = memnew(CenterContainer);
+	logo_cc->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	vbc->add_child(logo_cc);
 
 	_logo = memnew(TextureRect);
 	_logo->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
-	hbc->add_child(_logo);
+	logo_cc->add_child(_logo);
 
-	VBoxContainer *version_info_vbc = memnew(VBoxContainer);
+	HSplitContainer *middle_split = memnew(HSplitContainer);
+	middle_split->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	middle_split->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+	middle_split->set_split_offset(0);
+	vbc->add_child(middle_split);
 
-	// Add a dummy control node for spacing.
-	Control *v_spacer = memnew(Control);
-	version_info_vbc->add_child(v_spacer);
+	// About Animation : misc\logo\about_animation.ach
+	{
+		SubViewportContainer *lottie_wrapper = memnew(SubViewportContainer);
+		lottie_wrapper->set_custom_minimum_size(Size2(240, 0) * EDSCALE);
+		lottie_wrapper->set_stretch(true);
+		middle_split->add_child(lottie_wrapper);
 
-	version_info_vbc->add_child(memnew(EditorVersionButton(EditorVersionButton::FORMAT_WITH_NAME_AND_BUILD)));
+		SubViewport *lottie_viewport = memnew(SubViewport);
+		lottie_viewport->set_update_mode(SubViewport::UPDATE_ALWAYS);
+		lottie_viewport->set_transparent_background(true);
+		lottie_wrapper->add_child(lottie_viewport);
 
-	_about_text_label = memnew(Label);
-	_about_text_label->set_focus_mode(Control::FOCUS_ACCESSIBILITY);
-	_about_text_label->set_v_size_flags(Control::SIZE_SHRINK_CENTER);
-	_about_text_label->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
-	version_info_vbc->add_child(_about_text_label);
+		Camera2D *lottie_cam = memnew(Camera2D);
+		lottie_cam->set_anchor_mode(Camera2D::ANCHOR_MODE_DRAG_CENTER);
+		lottie_viewport->add_child(lottie_cam);
 
-	hbc->add_child(version_info_vbc);
+		LottieAnimation *lottie_anim = memnew(LottieAnimation);
+		lottie_anim->load_from_buffer(String(lottie_anim_data).to_utf8_buffer(), false);
+		lottie_anim->set_autoplay(true);
+		lottie_viewport->add_child(lottie_anim);
+	}
 
 	TabContainer *tc = memnew(TabContainer);
-	tc->set_tab_alignment(TabBar::ALIGNMENT_CENTER);
-	tc->set_custom_minimum_size(Size2(400, 200) * EDSCALE);
-	tc->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+	tc->set_tab_alignment(TabBar::ALIGNMENT_LEFT);
 	tc->set_theme_type_variation("TabContainerOdd");
-	vbc->add_child(tc);
-
-	{
-		ScrollContainer *sc = memnew(ScrollContainer);
-		sc->set_name(TTRC("Authors"));
-		sc->set_v_size_flags(Control::SIZE_EXPAND);
-		tc->add_child(sc);
-
-		VBoxContainer *vb = memnew(VBoxContainer);
-		vb->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-		sc->add_child(vb);
-
-		_create_section(vb, TTRC("Project Founders"), AUTHORS_FOUNDERS, FLAG_SINGLE_COLUMN);
-		_create_section(vb, TTRC("Lead Developer"), AUTHORS_LEAD_DEVELOPERS);
-		// The section title will be updated in NOTIFICATION_TRANSLATION_CHANGED.
-		_project_manager_label = _create_section(vb, "", AUTHORS_PROJECT_MANAGERS, FLAG_EASTER_EGG);
-		_project_manager_label->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
-		_create_section(vb, TTRC("Developers"), AUTHORS_DEVELOPERS);
-	}
-
-	{
-		ScrollContainer *sc = memnew(ScrollContainer);
-		sc->set_name(TTRC("Donors"));
-		sc->set_v_size_flags(Control::SIZE_EXPAND);
-		tc->add_child(sc);
-
-		VBoxContainer *vb = memnew(VBoxContainer);
-		vb->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-		sc->add_child(vb);
-
-		_create_section(vb, TTRC("Patrons"), DONORS_PATRONS, FLAG_ALLOW_WEBSITE | FLAG_SINGLE_COLUMN);
-		_create_section(vb, TTRC("Platinum Sponsors"), DONORS_SPONSORS_PLATINUM, FLAG_ALLOW_WEBSITE);
-		_create_section(vb, TTRC("Gold Sponsors"), DONORS_SPONSORS_GOLD, FLAG_ALLOW_WEBSITE);
-		_create_section(vb, TTRC("Silver Sponsors"), DONORS_SPONSORS_SILVER, FLAG_ALLOW_WEBSITE);
-		_create_section(vb, TTRC("Diamond Members"), DONORS_MEMBERS_DIAMOND, FLAG_ALLOW_WEBSITE);
-		_create_section(vb, TTRC("Titanium Members"), DONORS_MEMBERS_TITANIUM, FLAG_ALLOW_WEBSITE);
-		_create_section(vb, TTRC("Platinum Members"), DONORS_MEMBERS_PLATINUM, FLAG_ALLOW_WEBSITE);
-		_create_section(vb, TTRC("Gold Members"), DONORS_MEMBERS_GOLD, FLAG_ALLOW_WEBSITE);
-	}
-
-	// License.
+	middle_split->add_child(tc);
 
 	license_text_label = memnew(RichTextLabel);
 	license_text_label->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
@@ -299,14 +142,12 @@ EditorAbout::EditorAbout() {
 	license_text_label->set_text(String::utf8(GODOT_LICENSE_TEXT));
 	tc->add_child(license_text_label);
 
-	// Thirdparty License.
-
 	VBoxContainer *license_thirdparty = memnew(VBoxContainer);
 	license_thirdparty->set_name(TTRC("Third-party Licenses"));
 	license_thirdparty->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	tc->add_child(license_thirdparty);
 
-	Label *tpl_label = memnew(Label(TTRC("Godot Engine relies on a number of third-party free and open source libraries, all compatible with the terms of its MIT license. The following is an exhaustive list of all such third-party components with their respective copyright statements and license terms.")));
+	Label *tpl_label = memnew(Label(TTRC("Chadot Engine relies on a number of third-party free and open source libraries, all compatible with the terms of its MIT license. The following is an exhaustive list of all such third-party components with their respective copyright statements and license terms.")));
 	tpl_label->set_focus_mode(Control::FOCUS_ACCESSIBILITY);
 	tpl_label->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	tpl_label->set_autowrap_mode(TextServer::AUTOWRAP_WORD_SMART);
@@ -381,4 +222,45 @@ EditorAbout::EditorAbout() {
 	_tpl_tree->connect(SceneStringName(item_selected), callable_mp(this, &EditorAbout::_license_tree_selected));
 	tpl_ti_all->select(0);
 	_tpl_text->set_text(tpl_ti_all->get_metadata(0));
+
+	MarginContainer *version_margin = memnew(MarginContainer);
+	version_margin->add_theme_constant_override("margin_top", 10 * EDSCALE);
+	version_margin->add_theme_constant_override("margin_bottom", 20 * EDSCALE);
+	vbc->add_child(version_margin);
+
+	CenterContainer *version_cc = memnew(CenterContainer);
+	version_cc->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	version_margin->add_child(version_cc);
+
+	version_cc->add_child(memnew(EditorVersionButton(EditorVersionButton::FORMAT_WITH_NAME_AND_BUILD)));
+}
+
+void EditorAbout::pick_random_title() {
+	const char *titles[] = {
+		"Why are you reading the About, dumbass?! Read the fuckin' manual!",
+		"A better dot for chads. Not a chad? Godot's that way, champ.",
+		"You opened the About. Bold move for someone who can't even center a sprite.",
+		"Unlock all features with Chadot premium, starting only at $9999,99 ( Elon please :( )",
+		"Still reading? Go make something, licenses are for nerds, Be a chad, dgaf and mak gam.",
+		"A dot so good it made you read the About. You're welcome.",
+		"You clicked About. Respect. Now get back to work.",
+		"+0,018ETH mined last session. Your GPU can now boil an egg, ur welcome :v",
+		"This About screen is better than your entire project. Anyway, hi :D",
+		"It's chad + dot, not chado, not chadow, not chadough, not chad-Duh, It's a chad with a dot!",
+		"What crap are we making today, Mr.\"Gamedev\"?",
+	};
+	const int title_count = sizeof(titles) / sizeof(titles[0]);
+	set_title(titles[Math::rand() % title_count]);
+}
+
+void EditorAbout::create(Node *p_parent) {
+	static EditorAbout *about = nullptr;
+	if (about == nullptr) {
+		about = memnew(EditorAbout);
+		p_parent->add_child(about);
+	}
+	about->pick_random_title();
+	about->reset_size();
+	about->set_min_size(Size2(750, 620) * EDSCALE);
+	about->popup_centered(about->get_min_size());
 }
