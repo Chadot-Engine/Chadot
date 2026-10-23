@@ -442,6 +442,10 @@ private:
 public:
 	bool _is_queued_for_deletion : 1; // Set to true by SceneTree::queue_delete().
 
+public:
+	// Todo: Expose to GDExtension
+	virtual bool _get_flat_inspector_mode() const { return false; } 
+
 private:
 #ifdef TOOLS_ENABLED
 	bool _edited : 1;

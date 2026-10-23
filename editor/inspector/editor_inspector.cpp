@@ -4512,6 +4512,8 @@ void EditorInspector::update_tree() {
 	const Color sscolor = theme_cache.prop_subsection;
 	bool sub_inspectors_enabled = EDITOR_GET("interface/inspector/open_resources_in_current_inspector");
 
+	const bool flat_inspector = object->_get_flat_inspector_mode();
+
 	if (!valid_plugins.is_empty()) {
 		for (Ref<EditorInspectorPlugin> &ped : valid_plugins) {
 			ped->parse_begin(object);
@@ -4575,6 +4577,10 @@ void EditorInspector::update_tree() {
 
 			vbox_per_path.clear();
 			editor_inspector_array_per_prefix.clear();
+
+			if (flat_inspector) {
+				continue;
+			}
 
 			// `hint_script` should contain a native class name or a script path.
 			// Otherwise the category was probably added via `@export_category` or `_get_property_list()`.
