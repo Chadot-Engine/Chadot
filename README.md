@@ -19,6 +19,7 @@ It provides a fully customizable rendering pipeline with support for systems suc
 - Custom Lightmap Support with ReLight Integration
 - Native Lottie Vector Animation Support
 - Per-Viewport Global Material Override (Environment)
+- Six-Way Lighting Volumetric/Foliage Materials Integration
 
 ### Work in Progress
 - New API and SDK for engine internals

@@ -334,6 +334,12 @@ EditorPropertyNameProcessor::EditorPropertyNameProcessor() {
 	capitalize_string_remaps["yz"] = "YZ";
 	capitalize_string_remaps["tm"] = "™";
 
+#ifdef MODULE_HM_MATERIALS_ENABLED
+	capitalize_string_remaps["rtb"] = "RTB™";
+	capitalize_string_remaps["lbf"] = "LBF™";
+	capitalize_string_remaps["tea"] = "TEA™";
+#endif
+
 	// Articles, conjunctions, prepositions.
 	// The following initialization is parsed in https://github.com/godotengine/godot-editor-l10n/blob/main/scripts/common.py
 	// with a regex. The word definition format should be kept synced with the regex.

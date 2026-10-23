@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="16"
+   height="16"
+   version="1.1"
+   id="svg12"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs12">
+    <radialGradient
+       id="b"
+       cx="64.920998"
+       cy="54.062"
+       r="73.860001"
+       gradientTransform="matrix(-0.063125,6.249375,4.703125,0.0475,-204.40677,-457.40717)"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         offset=".214"
+         stop-color="#fff176"
+         id="stop4-6" />
+      <stop
+         offset=".328"
+         stop-color="#fff27d"
+         id="stop5-8" />
+      <stop
+         offset=".487"
+         stop-color="#fff48f"
+         id="stop6-6" />
+      <stop
+         offset=".672"
+         stop-color="#fff7ad"
+         id="stop7-5" />
+      <stop
+         offset=".793"
+         stop-color="#fff9c4"
+         id="stop8-7" />
+      <stop
+         offset=".822"
+         stop-color="#fff8bd"
+         stop-opacity=".804"
+         id="stop9-6" />
+      <stop
+         offset=".863"
+         stop-color="#fff6ab"
+         stop-opacity=".529"
+         id="stop10-2" />
+      <stop
+         offset=".91"
+         stop-color="#fff38d"
+         stop-opacity=".209"
+         id="stop11-5" />
+      <stop
+         offset=".941"
+         stop-color="#fff176"
+         stop-opacity="0"
+         id="stop12-0" />
+    </radialGradient>
+    <radialGradient
+       id="a-2"
+       cx="68.884003"
+       cy="124.296"
+       r="70.586998"
+       gradientTransform="matrix(-6.25,-0.027125,-0.0445625,10.255,457.04323,-882.89467)"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         offset=".314"
+         stop-color="#ff9800"
+         id="stop1-9" />
+      <stop
+         offset=".662"
+         stop-color="#ff6d00"
+         id="stop2-0" />
+      <stop
+         offset=".972"
+         stop-color="#f44336"
+         id="stop3-7" />
+    </radialGradient>
+  </defs>
+  <linearGradient
+     id="a"
+     x2="0"
+     y2="16"
+     gradientUnits="userSpaceOnUse">
+    <stop
+       offset=".188"
+       stop-color="#ff4545"
+       id="stop1" />
+    <stop
+       stop-color="#ffe345"
+       id="stop2" />
+    <stop
+       offset=".313"
+       stop-color="#ffe345"
+       id="stop3" />
+    <stop
+       stop-color="#80ff45"
+       id="stop4" />
+    <stop
+       offset=".438"
+       stop-color="#80ff45"
+       id="stop5" />
+    <stop
+       stop-color="#45ffa2"
+       id="stop6" />
+    <stop
+       offset=".563"
+       stop-color="#45ffa2"
+       id="stop7" />
+    <stop
+       stop-color="#45d7ff"
+       id="stop8" />
+    <stop
+       offset=".688"
+       stop-color="#45d7ff"
+       id="stop9" />
+    <stop
+       stop-color="#8045ff"
+       id="stop10" />
+    <stop
+       offset=".813"
+       stop-color="#8045ff"
+       id="stop11" />
+    <stop
+       stop-color="#ff4596"
+       id="stop12" />
+  </linearGradient>
+  <g
+     id="g12"
+     transform="matrix(0.01971841,0,0,0.01971841,7.3680623,7.7435465)">
+    <path
+       fill="url(#a)"
+       d="m -145.61927,-132.42592 c -3.5625,38 -6.0625,105.25 16.375,133.875 0,0 -10.5625,-73.875 84.125,-166.5625 38.125,-37.3125 46.9375,-88.0625 33.625,-126.125 -7.5625,-21.5625 -21.375,-39.375 -33.375,-51.8125 -7,-7.3125 -1.625,-19.375 8.5625,-18.9375 61.625,2.75 161.5,19.875 203.9375,126.375 18.625,46.75 20,95.0625 11.125,144.1875 -5.625,31.375 -25.625,101.125 20,109.6875 32.5625,6.125 48.3125,-19.75 55.375,-38.375 2.9375,-7.75 13.125,-9.6875 18.625,-3.5 55,62.5625 59.6875,136.25 48.3125,199.6875 -22,122.625 -146.1875,211.875 -269.5625,211.875 -154.125,0 -276.8125,-88.1875 -308.625,-247.8125 -12.8125,-64.4375 -6.3125,-191.9375 93.0625,-281.9375 7.375,-6.75 19.4375,-0.75 18.4375,9.375 z"
+       id="path3"
+       style="fill:url(#a-2);stroke-width:6.25" />
+    <path
+       fill="url(#b)"
+       d="m 107.81823,96.88658 c -56.8125,-73.125 -31.375,-156.5625 -17.4375,-189.8125 1.875,-4.375 -3.125,-8.5 -7.0625,-5.8125 -24.4375,16.625 -74.5,55.75 -97.8125,110.8125 -31.5625,74.4375 -29.3125,110.875 -10.625,155.375 11.25,26.8125 -1.8125,32.5 -8.375,33.5 -6.375,1 -12.25,-3.25 -16.9375,-7.6875 a 100.5625,100.5625 0 0 1 -27.75,-47.5 c -1,-3.875 -6.0625,-4.9375 -8.375,-1.75 -17.5,24.1875 -26.5625,63 -27,90.4375 -1.375,84.8125 68.6875,153.5625 153.4375,153.5625 106.8125,0 184.625,-118.125 123.25,-216.875 -17.8125,-28.75 -34.5625,-47.5625 -55.3125,-74.25 z"
+       id="path12-2"
+       style="fill:url(#b);stroke-width:6.25" />
+  </g>
+</svg>

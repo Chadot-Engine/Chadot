@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SixWayFoliageMaterial" inherits="Material" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		A [b]Foliage Lighting Shader[/b] using a Six-Directional Lighting Model (SDLM).
+	</brief_description>
+	<description>
+		A [b]Foliage Lighting Shader[/b] using a Six-Directional Lighting Model (SDLM) designed to simulate realistic light interaction within semi-transparent 2D foliage.
+		[b]Parameters :[/b]
+		[color=#03c2fc][b]Six Way Map RTB[/b][/color] (Type: Texture2D): Right-Top-Back lighting texture (RGB channels contain lighting data for positive X, Y, and negative Z directions).
+		[color=#03c2fc][b]Six Way Map LBF[/b][/color] (Type: Texture2D): Left-Bottom-Front lighting texture (RGB channels contain lighting data for negative X, negative Y, and positive Z directions).
+		[color=#03c2fc][b]Six Way Map TEA[/b][/color] (Type: Texture2D): Transparency-Emission-AO texture (R channel for Alpha, G for Emission, B for Ambient Occlusion).
+		[color=#03c2fc][b]Motion Vector Map[/b][/color] (Type: Texture2D): Motion vector texture used for per-pixel animation.
+		[color=#03c2fc][b]Normal Map[/b][/color] (Type: Texture2D): Normal map for simulating surface details.
+		[color=#03c2fc][b]Emission Ramp[/b][/color] (Type: Texture2D): Color ramp texture for emission effects. Blackbody can be used as well.
+		[color=#03c2fc][b]Albedo[/b][/color] (Type: Texture2D): Base color texture for the foliage.
+		[color=#fcba03][b]Thickness[/b][/color] (Type: float): Volume thickness multiplier (Affects light absorption).
+		[color=#fcba03][b]Density[/b][/color] (Type: float): Density of the volume (Affects overall opacity).
+		[color=#fcba03][b]Scattering[/b][/color] (Type: float): Light scattering amount, Defines how much light diffuses through the volume.
+		[color=#fcba03][b]Normal Power[/b][/color] (Type: float): Strength of normal mapping effect.
+		[color=#fcba03][b]Normal Blend[/b][/color] (Type: float): Blend factor between directional lighting and normal-mapped lighting.
+		[color=#fcba03][b]AO Power[/b][/color] (Type: float): Ambient occlusion strength from the TEA texture's B channel.
+		[color=#fcba03][b]emission_power[/b][/color] (Type: float): Emission strength multiplier.
+		[color=#fcba03][b]Alpha Scissor Threshold[/b][/color] (Type: float): Alpha cutoff threshold for alpha-scissor transparency.
+		[color=#fcba03][b]Billboard Mode[/b][/color] (Type: bool): Enables billboarding (face towards camera).
+		[color=#fcba03][b]billboard Keep Scale[/b][/color] (Type: bool): Maintain object scale when billboarding.
+		[color=#fcba03][b]Animate[/b][/color] (Type: bool): Enables flipbook animation.
+		[color=#fcba03][b]Animate Speed[/b][/color] (Type: float): Flipbook animation speed in frames per second.
+		[color=#fcba03][b]Animate Offset[/b][/color] (Type: float): Time offset for animation start.
+		[color=#fcba03][b]Flipbook Dimensions[/b][/color] (Type: Vector2): Grid dimensions for flipbook animation (columns, rows).
+		[color=#fcba03][b]Depth Fade Distance[/b][/color] (Type: float): Distance over which the foliage fades to avoid hard intersections with geometry.
+		[color=#fcba03][b]Depth Fade Strength[/b][/color] (Type: float): Strength of the depth fade effect.
+		[color=#fcba03][b]Scale Variation[/b][/color] (Type: float): Per-instance random scale variation for trees.
+		[color=#fcba03][b]Hue Variation[/b][/color] (Type: float): Per-instance random hue variation for trees.
+		[color=#fcba03][b]Value Variation[/b][/color] (Type: float): Per-instance random value (brightness) variation for trees.
+		[color=#03fc84][b]Developed By Hamid.Memar[/b][/color]
+	</description>
+	<tutorials>
+		<link title="Watch Tutorial">https://www.youtube.com/@memardesign</link>
+	</tutorials>
+</class>
