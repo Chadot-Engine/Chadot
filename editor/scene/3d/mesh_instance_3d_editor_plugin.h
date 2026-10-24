@@ -33,6 +33,7 @@
 #include "editor/plugins/editor_plugin.h"
 #include "scene/3d/mesh_instance_3d.h"
 #include "scene/gui/option_button.h"
+#include "scene/gui/check_box.h"
 
 class AcceptDialog;
 class AspectRatioContainer;
@@ -77,12 +78,23 @@ class MeshInstance3DEditor : public Control {
 		SHAPE_AXIS_LONGEST,
 	};
 
+	enum UV2Backend {
+		UV2_BACKEND_XATLAS,																																						
+		UV2_BACKEND_TRIANGLE_PACKER,
+	};
+
 	MeshInstance3D *node = nullptr;
 
 	MenuButton *options = nullptr;
 
 	ConfirmationDialog *outline_dialog = nullptr;
 	SpinBox *outline_size = nullptr;
+
+	ConfirmationDialog *uv2_packer_dialog = nullptr;
+	OptionButton *uv2_packer_backend = nullptr;
+	SpinBox *uv2_packer_padding = nullptr;
+	CheckBox *uv2_packer_straight = nullptr;
+	VBoxContainer *uv2_packer_tp_options = nullptr; 
 
 	ConfirmationDialog *shape_dialog = nullptr;
 	OptionButton *shape_type = nullptr;
@@ -107,6 +119,9 @@ class MeshInstance3DEditor : public Control {
 	void _menu_option(int p_option);
 	void _create_outline_mesh();
 	void _create_navigation_mesh();
+
+	void _unwrap_for_lightmap();
+	void _unwrapper_backend_selected(int p_option);
 
 	void _create_uv_lines(int p_layer);
 	friend class MeshInstance3DEditorPlugin;

@@ -2109,6 +2109,568 @@ Error ArrayMesh::lightmap_unwrap(const Transform3D &p_base_transform, float p_te
 	return lightmap_unwrap_cached(p_base_transform, p_texel_size, null_cache, null_cache, false);
 }
 
+Error ArrayMesh::lightmap_unwrap_tp(const Transform3D &p_base_transform, float p_texel_size, float p_padding, bool straight) {
+	ERR_FAIL_COND_V_MSG(blend_shapes.size() != 0, ERR_UNAVAILABLE, "Can't unwrap mesh with blend shapes.");
+	ERR_FAIL_COND_V_MSG(p_texel_size <= 0.0f, ERR_PARAMETER_RANGE_ERROR, "Texel size must be greater than 0.");
+
+	// Algorithm Inspired by ray-cast/trianglepacker by Rui
+	// This Function (ArrayMesh::lightmap_unwrap_tp) Code is Licensed Under PJPPL v1.0
+
+	struct Surface {
+		Ref<Material> material;
+		uint64_t format;
+		LocalVector<SurfaceTool::Vertex> vertices;
+		int vertex_ofs;
+	};
+	struct Tri {
+		float w, h;
+		int surface;
+		int vi[3];
+		Vector2 uv[3];
+	};
+	struct Patch {
+		Vector2 edge;
+		int ta, tb;
+		Vector2 uv_a[3];
+		Vector2 uv_b[3];
+	};
+	struct Node {
+		Vector4 rect = Vector4(0, 0, 1, 1);
+		int child[2] = { -1, -1 };
+	};
+	struct TriCompare {
+		bool operator()(const Tri &a, const Tri &b) const {
+			if (a.h != b.h) {
+				return a.h > b.h;
+			}
+			return a.w > b.w;
+		}
+	};
+	struct PatchCompare {
+		bool operator()(const Patch &a, const Patch &b) const {
+			if (a.edge.y != b.edge.y) {
+				return a.edge.y > b.edge.y;
+			}
+			return a.edge.x > b.edge.x;
+		}
+	};
+
+	Basis basis = p_base_transform.get_basis();
+	Vector3 scale_vec(basis.get_column(0).length(), basis.get_column(1).length(), basis.get_column(2).length());
+	Transform3D xform;
+	xform.scale(scale_vec);
+
+	LocalVector<Surface> mesh_surfaces;
+	LocalVector<Vector3> flat_pos;
+	LocalVector<Tri> tris;
+
+	for (int s = 0; s < get_surface_count(); s++) {
+		ERR_FAIL_COND_V_MSG(surface_get_primitive_type(s) != Mesh::PRIMITIVE_TRIANGLES, ERR_UNAVAILABLE, "Only triangles are supported for lightmap unwrap.");
+		uint64_t format = surface_get_format(s);
+		ERR_FAIL_COND_V_MSG(!(format & Mesh::ARRAY_FORMAT_NORMAL), ERR_UNAVAILABLE, "Normals are required for lightmap unwrap.");
+
+		Array arrays = surface_get_arrays(s);
+		Surface surf;
+		surf.material = surface_get_material(s);
+		surf.format = format;
+		surf.vertex_ofs = flat_pos.size();
+		SurfaceTool::create_vertex_array_from_arrays(arrays, surf.vertices, &surf.format);
+
+		int surface_index = mesh_surfaces.size();
+		int vc = surf.vertices.size();
+		for (int j = 0; j < vc; j++) {
+			flat_pos.push_back(xform.xform(surf.vertices[j].vertex));
+		}
+
+		PackedInt32Array idx = arrays[Mesh::ARRAY_INDEX];
+		int ic = idx.size();
+		int tri_count = (ic > 0) ? ic / 3 : vc / 3;
+		const float eps = 1.19209290e-7F;
+
+		for (int t = 0; t < tri_count; t++) {
+			int li[3];
+			for (int c = 0; c < 3; c++) {
+				int local = (ic > 0) ? idx[t * 3 + c] : t * 3 + c;
+				li[c] = surf.vertex_ofs + local;
+			}
+
+			const Vector3 &p0 = flat_pos[li[0]];
+			const Vector3 &p1 = flat_pos[li[1]];
+			const Vector3 &p2 = flat_pos[li[2]];
+			if ((p0 - p1).length_squared() < eps || (p1 - p2).length_squared() < eps || (p2 - p0).length_squared() < eps) {
+				continue;
+			}
+
+			Vector3 e[3] = { p1 - p0, p2 - p1, p0 - p2 };
+			float len2[3] = { e[0].length_squared(), e[1].length_squared(), e[2].length_squared() };
+			int maxi = 0;
+			if (len2[1] > len2[maxi]) {
+				maxi = 1;
+			}
+			if (len2[2] > len2[maxi]) {
+				maxi = 2;
+			}
+			int nexti = (maxi + 1) % 3;
+
+			float ww = Math::sqrt(len2[maxi]);
+			float hh = 0.0f;
+			float xx = 0.0f;
+			if (ww > 0.0f) {
+				xx = -e[maxi].dot(e[nexti]) / ww;
+				hh = ((e[maxi] + e[nexti]) - e[maxi].normalized() * (ww - xx)).length();
+			}
+
+			float min_x = MIN(0.0f, xx);
+			float max_x = MAX(ww, xx);
+			float min_y = MIN(0.0f, hh);
+			float max_y = MAX(0.0f, hh);
+
+			Tri tri;
+			tri.w = MAX(max_x - min_x, 1e-6f);
+			tri.h = MAX(max_y - min_y, 1e-6f);
+			tri.surface = surface_index;
+			tri.vi[0] = li[0];
+			tri.vi[1] = li[1];
+			tri.vi[2] = li[2];
+
+			Vector2 uv_v0 = Vector2(0 - min_x, 0 - min_y);
+			Vector2 uv_v1 = Vector2(ww - min_x, 0 - min_y);
+			Vector2 uv_v2 = Vector2(xx - min_x, hh - min_y);
+
+			if (maxi == 0) {
+				tri.uv[0] = uv_v0;
+				tri.uv[1] = uv_v1;
+				tri.uv[2] = uv_v2;
+			} else if (maxi == 1) {
+				tri.uv[1] = uv_v0;
+				tri.uv[2] = uv_v1;
+				tri.uv[0] = uv_v2;
+			} else {
+				tri.uv[2] = uv_v0;
+				tri.uv[0] = uv_v1;
+				tri.uv[1] = uv_v2;
+			}
+
+			tris.push_back(tri);
+		}
+
+		mesh_surfaces.push_back(surf);
+	}
+
+	if (tris.is_empty()) {
+		return OK;
+	}
+
+	tris.sort_custom<TriCompare>();
+
+	HashMap<Vector3i, int> pos_canon;
+	pos_canon.reserve(flat_pos.size() * 2);
+
+	LocalVector<int> tri_canon;
+	tri_canon.resize(tris.size() * 3);
+
+	for (int t = 0; t < (int)tris.size(); t++) {
+		for (int c = 0; c < 3; c++) {
+			const Vector3 &p = flat_pos[tris[t].vi[c]];
+			Vector3i key((int)Math::round(p.x * 1e3f), (int)Math::round(p.y * 1e3f), (int)Math::round(p.z * 1e3f));
+			int *canon = pos_canon.getptr(key);
+			if (canon) {
+				tri_canon[t * 3 + c] = *canon;
+			} else {
+				pos_canon[key] = tris[t].vi[c];
+				tri_canon[t * 3 + c] = tris[t].vi[c];
+			}
+		}
+	}
+
+	auto edge_key = [](int a, int b) -> uint64_t {
+		if (a > b) {
+			int t = a;
+			a = b;
+			b = t;
+		}
+		return ((uint64_t)(uint32_t)a << 32) | (uint32_t)b;
+	};
+
+	HashMap<uint64_t, int> edge_to_tri;
+	edge_to_tri.reserve(tris.size() * 4);
+	for (int t = 0; t < (int)tris.size(); t++) {
+		for (int e = 0; e < 3; e++) {
+			uint64_t k = edge_key(tri_canon[t * 3 + e], tri_canon[t * 3 + (e + 1) % 3]);
+			edge_to_tri[k] = t;
+		}
+	}
+
+	LocalVector<uint8_t> tri_paired;
+	tri_paired.resize(tris.size());
+	for (int t = 0; t < (int)tris.size(); t++) {
+		tri_paired[t] = 0;
+	}
+
+	LocalVector<Patch> patches;
+	for (int t = 0; t < (int)tris.size(); t++) {
+		if (tri_paired[t]) {
+			continue;
+		}
+
+		int neighbor = -1;
+		int shared_e = -1;
+
+		for (int e = 0; e < 3; e++) {
+			uint64_t k = edge_key(tri_canon[t * 3 + e], tri_canon[t * 3 + (e + 1) % 3]);
+			int *other = edge_to_tri.getptr(k);
+			if (other && *other != t && !tri_paired[*other]) {
+				int tb_e0 = -1, tb_e1 = -1;
+				for (int j = 0; j < 3; j++) {
+					if (tri_canon[*other * 3 + j] == tri_canon[t * 3 + e]) {
+						tb_e0 = j;
+					}
+					if (tri_canon[*other * 3 + j] == tri_canon[t * 3 + (e + 1) % 3]) {
+						tb_e1 = j;
+					}
+				}
+				if (tb_e0 >= 0 && tb_e1 >= 0 && tb_e0 != tb_e1) {
+					Vector3 n_a = (flat_pos[tris[t].vi[1]] - flat_pos[tris[t].vi[0]]).cross(flat_pos[tris[t].vi[2]] - flat_pos[tris[t].vi[0]]).normalized();
+					Vector3 n_b = (flat_pos[tris[*other].vi[1]] - flat_pos[tris[*other].vi[0]]).cross(flat_pos[tris[*other].vi[2]] - flat_pos[tris[*other].vi[0]]).normalized();
+
+					if (n_a.dot(n_b) > 0.99f) {
+						neighbor = *other;
+						shared_e = e;
+						break;
+					}
+				}
+			}
+		}
+
+		Patch p;
+		if (neighbor >= 0) {
+			tri_paired[t] = 1;
+			tri_paired[neighbor] = 1;
+			p.ta = t;
+			p.tb = neighbor;
+
+			int tb_e0 = -1, tb_e1 = -1;
+			for (int j = 0; j < 3; j++) {
+				if (tri_canon[neighbor * 3 + j] == tri_canon[t * 3 + shared_e]) {
+					tb_e0 = j;
+				}
+				if (tri_canon[neighbor * 3 + j] == tri_canon[t * 3 + (shared_e + 1) % 3]) {
+					tb_e1 = j;
+				}
+			}
+			int tb_third = 3 - tb_e0 - tb_e1;
+			int ta_third = (shared_e + 2) % 3;
+
+			Vector3 p0 = flat_pos[tris[t].vi[shared_e]];
+			Vector3 p1 = flat_pos[tris[t].vi[(shared_e + 1) % 3]];
+			Vector3 p2_a = flat_pos[tris[t].vi[ta_third]];
+			Vector3 p2_b = flat_pos[tris[neighbor].vi[tb_third]];
+
+			Vector3 u = p1 - p0;
+			float L = u.length();
+			Vector3 u_norm = u / L;
+			Vector3 n_a = u.cross(p2_a - p0).normalized();
+			Vector3 v_norm = n_a.cross(u_norm).normalized();
+
+			float x_a = (p2_a - p0).dot(u_norm);
+			float y_a = (p2_a - p0).dot(v_norm);
+			float x_b = (p2_b - p0).dot(u_norm);
+			float y_b = (p2_b - p0).dot(v_norm);
+
+			if (y_a * y_b > 0) {
+				tri_paired[t] = 0;
+				tri_paired[neighbor] = 0;
+				neighbor = -1;
+			} else {
+				Vector2 pts[4] = { Vector2(0, 0), Vector2(L, 0), Vector2(x_a, y_a), Vector2(x_b, y_b) };
+				Vector2 rot_pts[4];
+
+				if (straight) {
+					float best_area = 1e20f;
+					Vector2 best_dir, best_perp;
+					float best_min_x = 0, best_min_y = 0;
+
+					for (int e = 0; e < 4; e++) {
+						Vector2 dir = pts[(e + 1) % 4] - pts[e];
+						if (dir.length_squared() < 1e-12f) {
+							continue;
+						}
+						dir.normalize();
+						Vector2 perp(-dir.y, dir.x);
+
+						float min_x = 1e20f, max_x = -1e20f, min_y = 1e20f, max_y = -1e20f;
+						for (int i = 0; i < 4; i++) {
+							float px = pts[i].dot(dir);
+							float py = pts[i].dot(perp);
+							min_x = MIN(min_x, px);
+							max_x = MAX(max_x, px);
+							min_y = MIN(min_y, py);
+							max_y = MAX(max_y, py);
+						}
+						float area = (max_x - min_x) * (max_y - min_y);
+						if (area < best_area) {
+							best_area = area;
+							best_dir = dir;
+							best_perp = perp;
+							best_min_x = min_x;
+							best_min_y = min_y;
+							p.edge.x = max_x - min_x;
+							p.edge.y = max_y - min_y;
+						}
+					}
+
+					for (int i = 0; i < 4; i++) {
+						rot_pts[i].x = pts[i].dot(best_dir) - best_min_x;
+						rot_pts[i].y = pts[i].dot(best_perp) - best_min_y;
+					}
+				} else {
+					float min_x = MIN(0.0f, MIN(x_a, x_b));
+					float max_x = MAX(L, MAX(x_a, x_b));
+					float min_y = MIN(0.0f, MIN(y_a, y_b));
+					float max_y = MAX(0.0f, MAX(y_a, y_b));
+
+					p.edge.x = max_x - min_x;
+					p.edge.y = max_y - min_y;
+
+					rot_pts[0] = Vector2(0 - min_x, 0 - min_y);
+					rot_pts[1] = Vector2(L - min_x, 0 - min_y);
+					rot_pts[2] = Vector2(x_a - min_x, y_a - min_y);
+					rot_pts[3] = Vector2(x_b - min_x, y_b - min_y);
+				}
+
+				p.edge.x += p_padding;
+				p.edge.y += p_padding;
+
+				int v0_a = tris[t].vi[shared_e];
+				int v1_a = tris[t].vi[(shared_e + 1) % 3];
+				int v0_b = tris[neighbor].vi[tb_e0];
+				int v1_b = tris[neighbor].vi[tb_e1];
+
+				for (int k = 0; k < 3; k++) {
+					int vi = tris[t].vi[k];
+					if (vi == v0_a) {
+						p.uv_a[k] = rot_pts[0];
+					} else if (vi == v1_a) {
+						p.uv_a[k] = rot_pts[1];
+					} else {
+						p.uv_a[k] = rot_pts[2];
+					}
+				}
+				for (int k = 0; k < 3; k++) {
+					int vi = tris[neighbor].vi[k];
+					if (vi == v0_b) {
+						p.uv_b[k] = rot_pts[0];
+					} else if (vi == v1_b) {
+						p.uv_b[k] = rot_pts[1];
+					} else {
+						p.uv_b[k] = rot_pts[3];
+					}
+				}
+			}
+		}
+
+		if (neighbor < 0) {
+			tri_paired[t] = 1;
+			p.ta = t;
+			p.tb = -1;
+			p.edge.x = tris[t].w + p_padding;
+			p.edge.y = tris[t].h + p_padding;
+			for (int k = 0; k < 3; k++) {
+				p.uv_a[k] = tris[t].uv[k];
+			}
+			p.uv_b[0] = p.uv_b[1] = p.uv_b[2] = Vector2();
+		}
+		patches.push_back(p);
+	}
+
+	patches.sort_custom<PatchCompare>();
+
+	float sum_patch_area = 0.0f;
+	for (int i = 0; i < (int)patches.size(); i++) {
+		sum_patch_area += patches[i].edge.x * patches[i].edge.y;
+	}
+
+	auto pack_once = [&](float p_scale, Vector2 *r_uvs) -> int {
+		float area = Math::sqrt(sum_patch_area) * p_scale;
+		if (area <= 0.0f) {
+			area = 1.0f;
+		}
+
+		LocalVector<Vector2> edges;
+		edges.resize(patches.size());
+		for (int i = 0; i < (int)patches.size(); i++) {
+			edges[i] = patches[i].edge / area;
+		}
+
+		LocalVector<Node> nodes;
+		nodes.reserve(patches.size() * 2 + 1);
+		nodes.push_back(Node());
+
+		for (int pi = 0; pi < (int)patches.size(); pi++) {
+			const Vector2 &qe = edges[pi];
+			LocalVector<int> stack;
+			stack.push_back(0);
+			bool placed = false;
+
+			while (!stack.is_empty()) {
+				int ni = stack[stack.size() - 1];
+				stack.remove_at(stack.size() - 1);
+
+				if (nodes[ni].child[0] >= 0) {
+					stack.push_back(nodes[ni].child[1]);
+					stack.push_back(nodes[ni].child[0]);
+					continue;
+				}
+
+				float nx = nodes[ni].rect.x;
+				float ny = nodes[ni].rect.y;
+				float nz = nodes[ni].rect.z;
+				float nw = nodes[ni].rect.w;
+				if (qe.x > nz || qe.y > nw) {
+					continue;
+				}
+
+				int c0 = nodes.size();
+				nodes.push_back(Node());
+				int c1 = nodes.size();
+				nodes.push_back(Node());
+				nodes[ni].child[0] = c0;
+				nodes[ni].child[1] = c1;
+
+				float dw = nz - qe.x;
+				float dh = nw - qe.y;
+				if (dw < dh) {
+					nodes[c0].rect = Vector4(nx + qe.x, ny, dw, qe.y);
+					nodes[c1].rect = Vector4(nx, ny + qe.y, nz, dh);
+				} else {
+					nodes[c0].rect = Vector4(nx, ny + qe.y, qe.x, dh);
+					nodes[c1].rect = Vector4(nx + qe.x, ny, dw, nw);
+				}
+
+				if (r_uvs) {
+					Vector2 off(nx, ny);
+					Vector2 pad_offset(p_padding * 0.5f, p_padding * 0.5f);
+					for (int k = 0; k < 3; k++) {
+						r_uvs[patches[pi].ta * 3 + k] = (patches[pi].uv_a[k] + pad_offset) / area + off;
+					}
+					if (patches[pi].tb >= 0) {
+						for (int k = 0; k < 3; k++) {
+							r_uvs[patches[pi].tb * 3 + k] = (patches[pi].uv_b[k] + pad_offset) / area + off;
+						}
+					}
+				}
+
+				placed = true;
+				break;
+			}
+
+			if (!placed) {
+				return pi;
+			}
+		}
+
+		return patches.size();
+	};
+
+	float low = 0.0f;
+	float high = 1.0f;
+	while (pack_once(high, nullptr) < (int)patches.size()) {
+		low = high;
+		high *= 2.0f;
+		if (high > 1e6f) {
+			return ERR_CANT_CREATE;
+		}
+	}
+	for (int i = 0; i < 16; i++) {
+		float mid = (low + high) * 0.5f;
+		if (pack_once(mid, nullptr) >= (int)patches.size()) {
+			high = mid;
+		} else {
+			low = mid;
+		}
+	}
+
+	float final_scale = high;
+	float ideal = Math::sqrt(sum_patch_area) * final_scale / p_texel_size;
+	int final_side = 64;
+	while (final_side < ideal && final_side < 4096) {
+		final_side *= 2;
+	}
+	final_side = CLAMP(final_side, 64, 4096);
+
+	LocalVector<Vector2> out_uvs;
+	out_uvs.resize(tris.size() * 3);
+	if (pack_once(final_scale, out_uvs.ptr()) < (int)patches.size()) {
+		return ERR_CANT_CREATE;
+	}
+
+	HashMap<uint64_t, Vector2> uv_weld;
+	uv_weld.reserve(out_uvs.size());
+
+	const float weld_eps = 1e-4f;
+	for (int i = 0; i < (int)out_uvs.size(); i++) {
+		int64_t kx = (int64_t)Math::round(out_uvs[i].x / weld_eps);
+		int64_t ky = (int64_t)Math::round(out_uvs[i].y / weld_eps);
+
+		uint64_t k = ((uint64_t)(uint32_t)kx << 32) | (uint32_t)ky;
+
+		Vector2 *existing = uv_weld.getptr(k);
+		if (existing) {
+			out_uvs[i] = *existing;
+		} else {
+			uv_weld[k] = out_uvs[i];
+		}
+	}
+
+	clear_surfaces();
+
+	LocalVector<Ref<SurfaceTool>> surface_tools;
+	for (int s = 0; s < (int)mesh_surfaces.size(); s++) {
+		Ref<SurfaceTool> st;
+		st.instantiate();
+		st->begin(Mesh::PRIMITIVE_TRIANGLES);
+		st->set_material(mesh_surfaces[s].material);
+		surface_tools.push_back(st);
+	}
+	for (int t = 0; t < (int)tris.size(); t++) {
+		const Tri &tri = tris[t];
+		int s = tri.surface;
+		for (int c = 0; c < 3; c++) {
+			int local_vi = tri.vi[c] - mesh_surfaces[s].vertex_ofs;
+			const SurfaceTool::Vertex &v = mesh_surfaces[s].vertices[local_vi];
+
+			if (mesh_surfaces[s].format & Mesh::ARRAY_FORMAT_COLOR) {
+				surface_tools[s]->set_color(v.color);
+			}
+			if (mesh_surfaces[s].format & Mesh::ARRAY_FORMAT_TEX_UV) {
+				surface_tools[s]->set_uv(v.uv);
+			}
+			if (mesh_surfaces[s].format & Mesh::ARRAY_FORMAT_NORMAL) {
+				surface_tools[s]->set_normal(v.normal);
+			}
+			if (mesh_surfaces[s].format & Mesh::ARRAY_FORMAT_TANGENT) {
+				surface_tools[s]->set_tangent(Plane(v.tangent.x, v.tangent.y, v.tangent.z, v.tangent.w));
+			}
+			if (mesh_surfaces[s].format & Mesh::ARRAY_FORMAT_BONES) {
+				surface_tools[s]->set_bones(v.bones);
+			}
+			if (mesh_surfaces[s].format & Mesh::ARRAY_FORMAT_WEIGHTS) {
+				surface_tools[s]->set_weights(v.weights);
+			}
+
+			surface_tools[s]->set_uv2(out_uvs[t * 3 + c]);
+			surface_tools[s]->add_vertex(v.vertex);
+		}
+	}
+	for (int s = 0; s < (int)surface_tools.size(); s++) {
+		surface_tools[s]->index();
+		surface_tools[s]->commit(Ref<ArrayMesh>(this), mesh_surfaces[s].format);
+	}
+
+	set_lightmap_size_hint(Size2(final_side, final_side));
+	return OK;
+}
+
 Error ArrayMesh::lightmap_unwrap_cached(const Transform3D &p_base_transform, float p_texel_size, const Vector<uint8_t> &p_src_cache, Vector<uint8_t> &r_dst_cache, bool p_generate_cache) {
 	ERR_FAIL_NULL_V(array_mesh_lightmap_unwrap_callback, ERR_UNCONFIGURED);
 	ERR_FAIL_COND_V_MSG(blend_shapes.size() != 0, ERR_UNAVAILABLE, "Can't unwrap mesh with blend shapes.");

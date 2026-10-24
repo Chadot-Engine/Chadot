@@ -464,98 +464,7 @@ void MeshInstance3DEditor::_menu_option(int p_option) {
 			ur->commit_action();
 		} break;
 		case MENU_OPTION_CREATE_UV2: {
-			Ref<Mesh> mesh2 = node->get_mesh();
-			if (mesh.is_null()) {
-				err_dialog->set_text(TTR("No mesh to unwrap."));
-				err_dialog->popup_centered();
-				return;
-			}
-
-			// Test if we are allowed to unwrap this mesh resource.
-			String path = mesh2->get_path();
-			int srpos = path.find("::");
-			if (srpos != -1) {
-				String base = path.substr(0, srpos);
-				if (ResourceLoader::get_resource_type(base) == "PackedScene") {
-					if (!get_tree()->get_edited_scene_root() || get_tree()->get_edited_scene_root()->get_scene_file_path() != base) {
-						err_dialog->set_text(TTR("Mesh cannot unwrap UVs because it does not belong to the edited scene. Make it unique first."));
-						err_dialog->popup_centered();
-						return;
-					}
-				} else {
-					if (FileAccess::exists(path + ".import")) {
-						err_dialog->set_text(TTR("Mesh cannot unwrap UVs because it belongs to another resource which was imported from another file type. Make it unique first."));
-						err_dialog->popup_centered();
-						return;
-					}
-				}
-			} else {
-				if (FileAccess::exists(path + ".import")) {
-					err_dialog->set_text(TTR("Mesh cannot unwrap UVs because it was imported from another file type. Make it unique first."));
-					err_dialog->popup_centered();
-					return;
-				}
-			}
-
-			Ref<PrimitiveMesh> primitive_mesh = mesh2;
-			if (primitive_mesh.is_valid()) {
-				EditorUndoRedoManager *ur = EditorUndoRedoManager::get_singleton();
-				ur->create_action(TTR("Unwrap UV2"));
-				ur->add_do_method(*primitive_mesh, "set_add_uv2", true);
-				ur->add_undo_method(*primitive_mesh, "set_add_uv2", primitive_mesh->get_add_uv2());
-				ur->commit_action();
-			} else {
-				Ref<ArrayMesh> array_mesh = mesh2;
-				if (array_mesh.is_null()) {
-					err_dialog->set_text(TTR("Contained Mesh is not of type ArrayMesh."));
-					err_dialog->popup_centered();
-					return;
-				}
-
-				// Preemptively evaluate common fail cases for lightmap unwrapping.
-				{
-					if (array_mesh->get_blend_shape_count() > 0) {
-						err_dialog->set_text(TTR("Can't unwrap mesh with blend shapes."));
-						err_dialog->popup_centered();
-						return;
-					}
-
-					for (int i = 0; i < array_mesh->get_surface_count(); i++) {
-						Mesh::PrimitiveType primitive = array_mesh->surface_get_primitive_type(i);
-
-						if (primitive != Mesh::PRIMITIVE_TRIANGLES) {
-							err_dialog->set_text(TTR("Only triangles are supported for lightmap unwrap."));
-							err_dialog->popup_centered();
-							return;
-						}
-
-						uint64_t format = array_mesh->surface_get_format(i);
-						if (!(format & Mesh::ArrayFormat::ARRAY_FORMAT_NORMAL)) {
-							err_dialog->set_text(TTR("Normals are required for lightmap unwrap."));
-							err_dialog->popup_centered();
-							return;
-						}
-					}
-				}
-
-				Ref<ArrayMesh> unwrapped_mesh = array_mesh->duplicate(false);
-
-				Error err = unwrapped_mesh->lightmap_unwrap(node->get_global_transform());
-				if (err != OK) {
-					err_dialog->set_text(TTR("UV Unwrap failed, mesh may not be manifold?"));
-					err_dialog->popup_centered();
-					return;
-				}
-
-				EditorUndoRedoManager *ur = EditorUndoRedoManager::get_singleton();
-				ur->create_action(TTR("Unwrap UV2"));
-
-				ur->add_do_method(node, "set_mesh", unwrapped_mesh);
-				ur->add_do_reference(unwrapped_mesh.ptr());
-				ur->add_undo_method(node, "set_mesh", array_mesh);
-
-				ur->commit_action();
-			}
+			uv2_packer_dialog->popup_centered(Vector2(320, 120));			
 		} break;
 		case MENU_OPTION_DEBUG_UV1: {
 			Ref<Mesh> mesh2 = node->get_mesh();
@@ -602,6 +511,123 @@ struct MeshInstance3DEditorEdgeSort {
 		}
 	}
 };
+
+void MeshInstance3DEditor::_unwrap_for_lightmap()
+{
+	Ref<Mesh> mesh2 = node->get_mesh();
+	if (mesh2.is_null()) {
+		err_dialog->set_text(TTR("No mesh to unwrap."));
+		err_dialog->popup_centered();
+		return;
+	}
+
+	// Test if we are allowed to unwrap this mesh resource.
+	String path = mesh2->get_path();
+	int srpos = path.find("::");
+	if (srpos != -1) {
+		String base = path.substr(0, srpos);
+		if (ResourceLoader::get_resource_type(base) == "PackedScene") {
+			if (!get_tree()->get_edited_scene_root() || get_tree()->get_edited_scene_root()->get_scene_file_path() != base) {
+				err_dialog->set_text(TTR("Mesh cannot unwrap UVs because it does not belong to the edited scene. Make it unique first."));
+				err_dialog->popup_centered();
+				return;
+			}
+		} else {
+			if (FileAccess::exists(path + ".import")) {
+				err_dialog->set_text(TTR("Mesh cannot unwrap UVs because it belongs to another resource which was imported from another file type. Make it unique first."));
+				err_dialog->popup_centered();
+				return;
+			}
+		}
+	} else {
+		if (FileAccess::exists(path + ".import")) {
+			err_dialog->set_text(TTR("Mesh cannot unwrap UVs because it was imported from another file type. Make it unique first."));
+			err_dialog->popup_centered();
+			return;
+		}
+	}
+
+	Ref<PrimitiveMesh> primitive_mesh = mesh2;
+	if (primitive_mesh.is_valid()) {
+		EditorUndoRedoManager *ur = EditorUndoRedoManager::get_singleton();
+		ur->create_action(TTR("Unwrap UV2"));
+		ur->add_do_method(*primitive_mesh, "set_add_uv2", true);
+		ur->add_undo_method(*primitive_mesh, "set_add_uv2", primitive_mesh->get_add_uv2());
+		ur->commit_action();
+	} else {
+		Ref<ArrayMesh> array_mesh = mesh2;
+		if (array_mesh.is_null()) {
+			err_dialog->set_text(TTR("Contained Mesh is not of type ArrayMesh."));
+			err_dialog->popup_centered();
+			return;
+		}
+
+		// Preemptively evaluate common fail cases for lightmap unwrapping.
+		{
+			if (array_mesh->get_blend_shape_count() > 0) {
+				err_dialog->set_text(TTR("Can't unwrap mesh with blend shapes."));
+				err_dialog->popup_centered();
+				return;
+			}
+
+			for (int i = 0; i < array_mesh->get_surface_count(); i++) {
+				Mesh::PrimitiveType primitive = array_mesh->surface_get_primitive_type(i);
+
+				if (primitive != Mesh::PRIMITIVE_TRIANGLES) {
+					err_dialog->set_text(TTR("Only triangles are supported for lightmap unwrap."));
+					err_dialog->popup_centered();
+					return;
+				}
+
+				uint64_t format = array_mesh->surface_get_format(i);
+				if (!(format & Mesh::ArrayFormat::ARRAY_FORMAT_NORMAL)) {
+					err_dialog->set_text(TTR("Normals are required for lightmap unwrap."));
+					err_dialog->popup_centered();
+					return;
+				}
+			}
+		}
+
+		Ref<ArrayMesh> unwrapped_mesh = array_mesh->duplicate(false);
+
+		UV2Backend backend = UV2Backend(uv2_packer_backend->get_selected_id());
+
+		Error err;
+		switch (backend) {
+			case UV2_BACKEND_TRIANGLE_PACKER:
+				err = unwrapped_mesh->lightmap_unwrap_tp(node->get_global_transform(), 0.1f, uv2_packer_padding->get_value(), uv2_packer_straight->is_pressed());
+				break;
+			case UV2_BACKEND_XATLAS:
+			default:
+				err = unwrapped_mesh->lightmap_unwrap(node->get_global_transform());
+				break;
+		}
+
+		if (err != OK) {
+			if (backend == UV2_BACKEND_TRIANGLE_PACKER) {
+				err_dialog->set_text(TTR("UV Unwrap failed, mesh does not fit in the atlas. Try a coarser texel size or split the mesh."));
+			} else {
+				err_dialog->set_text(TTR("UV Unwrap failed, mesh may not be manifold?"));
+			}
+			err_dialog->popup_centered();
+			return;
+		}
+
+		EditorUndoRedoManager *ur = EditorUndoRedoManager::get_singleton();
+		ur->create_action(TTR("Unwrap UV2"));
+
+		ur->add_do_method(node, "set_mesh", unwrapped_mesh);
+		ur->add_do_reference(unwrapped_mesh.ptr());
+		ur->add_undo_method(node, "set_mesh", array_mesh);
+
+		ur->commit_action();
+	}
+}
+
+void MeshInstance3DEditor::_unwrapper_backend_selected(int p_option) {
+	int id = uv2_packer_backend->get_item_id(p_option);
+	uv2_packer_tp_options->set_visible(id == UV2_BACKEND_TRIANGLE_PACKER);
+}
 
 void MeshInstance3DEditor::_create_uv_lines(int p_layer) {
 	Ref<Mesh> mesh = node->get_mesh();
@@ -901,6 +927,54 @@ MeshInstance3DEditor::MeshInstance3DEditor() {
 
 	add_child(shape_dialog);
 	shape_dialog->connect(SceneStringName(confirmed), callable_mp(this, &MeshInstance3DEditor::_create_collision_shape));
+
+	uv2_packer_dialog = memnew(ConfirmationDialog);
+	uv2_packer_dialog->set_title(TTR("Unwrap UV2 for Lightmap/AO"));
+	uv2_packer_dialog->set_ok_button_text(TTR("Unwrap"));
+
+	VBoxContainer *uv2_packer_dialog_vbc = memnew(VBoxContainer);
+	uv2_packer_dialog->add_child(uv2_packer_dialog_vbc);
+
+	Label *uv2_packer_label = memnew(Label);
+	uv2_packer_label->set_text(TTR("Unwrapper Backend:"));
+	uv2_packer_dialog_vbc->add_child(uv2_packer_label);
+
+	uv2_packer_backend = memnew(OptionButton);
+	uv2_packer_backend->set_accessibility_name(TTRC("Unwrapper Backend"));
+	uv2_packer_backend->set_h_size_flags(SIZE_EXPAND_FILL);
+	uv2_packer_backend->add_item(TTR("Built-in Default (xatlas/Thekla)"), UV2_BACKEND_XATLAS);
+	uv2_packer_backend->set_item_tooltip(-1, TTR("Uses Engine's built-in lightmap unwrapper."));
+	uv2_packer_backend->add_item(TTR("TriPacker (Voxel-Friendly)"), UV2_BACKEND_TRIANGLE_PACKER);
+	uv2_packer_backend->set_item_tooltip(-1, TTR("Uses the triangle-based unwrapper backend."));
+	uv2_packer_dialog_vbc->add_child(uv2_packer_backend);
+
+	uv2_packer_tp_options = memnew(VBoxContainer);
+	uv2_packer_tp_options->set_visible(false);
+	uv2_packer_dialog_vbc->add_child(uv2_packer_tp_options);
+
+	HBoxContainer *padding_hbc = memnew(HBoxContainer);
+	uv2_packer_tp_options->add_child(padding_hbc);
+	Label *padding_label = memnew(Label);
+	padding_label->set_text(TTR("Padding:"));
+	padding_label->set_h_size_flags(SIZE_EXPAND_FILL);
+	padding_hbc->add_child(padding_label);
+	uv2_packer_padding = memnew(SpinBox);
+	uv2_packer_padding->set_min(0.0);
+	uv2_packer_padding->set_max(10.0);
+	uv2_packer_padding->set_step(0.001);
+	uv2_packer_padding->set_value(0.005);
+	padding_hbc->add_child(uv2_packer_padding);
+
+	uv2_packer_straight = memnew(CheckBox);
+	uv2_packer_straight->set_text(TTR("Straight Packing (axis-aligned)"));
+	uv2_packer_straight->set_pressed(true);
+	uv2_packer_tp_options->add_child(uv2_packer_straight);
+
+	add_child(uv2_packer_dialog);
+	uv2_packer_dialog->connect(SceneStringName(confirmed), callable_mp(this, &MeshInstance3DEditor::_unwrap_for_lightmap));
+	uv2_packer_backend->connect(SceneStringName(item_selected), callable_mp(this, &MeshInstance3DEditor::_unwrapper_backend_selected));
+
+	_unwrapper_backend_selected(uv2_packer_backend->get_selected());
 
 	err_dialog = memnew(AcceptDialog);
 	err_dialog->set_flag(Window::FLAG_RESIZE_DISABLED, true);

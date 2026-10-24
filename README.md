@@ -20,6 +20,7 @@ It provides a fully customizable rendering pipeline with support for systems suc
 - Native Lottie Vector Animation Support
 - Per-Viewport Global Material Override (Environment)
 - Six-Way Lighting Volumetric/Foliage Materials Integration
+- Voxel-Friendly Triangle-Based Lightmap Unwrapper/Packer
 
 ### Work in Progress
 - New API and SDK for engine internals
