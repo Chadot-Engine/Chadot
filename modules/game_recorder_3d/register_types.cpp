@@ -429,11 +429,13 @@ public:
 	}
 
 private:
+#ifdef TOOLS_ENABLED
 	void animation_sequence_selected(const String &seq_path, SpinBox *fps, CheckButton *validate, EditorFileDialog *dlg)
 	{
 		import_animation_sequence(seq_path, fps->get_value(), validate->is_pressed());
 		dlg->queue_free();
 	}
+#endif
 	void import_animation_sequence(const String &seq_path, float framerate, bool validate = false) {
 #ifdef TOOLS_ENABLED
 		Node *scene_root = EditorNode::get_singleton()->get_edited_scene();
