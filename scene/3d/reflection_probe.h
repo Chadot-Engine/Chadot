@@ -31,6 +31,7 @@
 #pragma once
 
 #include "scene/3d/visual_instance_3d.h"
+#include "scene/resources/texture.h"
 
 class ReflectionProbe : public VisualInstance3D {
 	GDCLASS(ReflectionProbe, VisualInstance3D);
@@ -39,6 +40,7 @@ public:
 	enum UpdateMode {
 		UPDATE_ONCE,
 		UPDATE_ALWAYS,
+		UPDATE_CUSTOM,
 	};
 
 	enum AmbientMode {
@@ -64,6 +66,8 @@ private:
 	uint32_t cull_mask = (1 << 20) - 1;
 	uint32_t reflection_mask = (1 << 20) - 1;
 	UpdateMode update_mode = UPDATE_ONCE;
+
+	Ref<Texture2D> custom_map;
 
 protected:
 	static void _bind_methods();
@@ -121,6 +125,9 @@ public:
 
 	void set_update_mode(UpdateMode p_mode);
 	UpdateMode get_update_mode() const;
+
+	void set_custom_map(const Ref<Texture2D> &p_custom_map);
+	Ref<Texture2D> get_custom_map() const;
 
 	virtual AABB get_aabb() const override;
 

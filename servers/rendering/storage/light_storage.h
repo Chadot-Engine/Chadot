@@ -121,6 +121,8 @@ public:
 	virtual void reflection_probe_free(RID p_rid) = 0;
 
 	virtual void reflection_probe_set_update_mode(RID p_probe, RSE::ReflectionProbeUpdateMode p_mode) = 0;
+	virtual void reflection_probe_set_custom_map(RID p_probe, RID p_texture) = 0;
+	virtual RID reflection_probe_get_custom_map(RID p_probe) const = 0;
 	virtual void reflection_probe_set_resolution(RID p_probe, int p_resolution) = 0;
 	virtual void reflection_probe_set_intensity(RID p_probe, float p_intensity) = 0;
 	virtual void reflection_probe_set_blend_distance(RID p_probe, float p_blend_distance) = 0;

@@ -23,7 +23,11 @@ void main() {
 layout(location = 0) in vec2 uv_interp;
 layout(location = 0) out vec4 frag_color;
 
+#ifdef MODE_PANORAMA
+layout(set = 0, binding = 0) uniform sampler2D source_panorama;
+#else
 layout(set = 0, binding = 0) uniform samplerCube source_cube;
+#endif
 
 layout(push_constant, std430) uniform Params {
 	float border_size;
@@ -35,5 +39,15 @@ params;
 
 void main() {
 	vec3 dir = oct_to_vec3_with_border(uv_interp * 0.5 + 0.5, params.border_size);
+
+#ifdef MODE_PANORAMA
+	// Equirectangular lookup: matches PanoramaSkyMaterial's convention.
+	const float PI = 3.14159265359;
+	vec2 sph = vec2(
+			atan(dir.x, dir.z) / (2.0 * PI) + 0.5,
+			acos(clamp(dir.y, -1.0, 1.0)) / PI);
+	frag_color = vec4(texture(source_panorama, sph).rgb, 1.0);
+#else
 	frag_color = vec4(texture(source_cube, dir).rgb, 1.0);
+#endif
 }

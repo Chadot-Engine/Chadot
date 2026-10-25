@@ -520,6 +520,8 @@ public:
 	FUNCRIDSPLIT(reflection_probe)
 
 	FUNC2(reflection_probe_set_update_mode, RID, RSE::ReflectionProbeUpdateMode)
+	FUNC2(reflection_probe_set_custom_map, RID, RID)
+	FUNC1RC(RID, reflection_probe_get_custom_map, RID)
 	FUNC2(reflection_probe_set_intensity, RID, float)
 	FUNC2(reflection_probe_set_blend_distance, RID, float)
 	FUNC2(reflection_probe_set_ambient_color, RID, const Color &)

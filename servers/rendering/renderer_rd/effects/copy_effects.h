@@ -242,6 +242,7 @@ private:
 		CubeToOctmapShaderRD shader;
 		RID shader_version;
 		PipelineCacheRD pipeline;
+		PipelineCacheRD panorama_pipeline;
 	} cube_to_octmap;
 
 	// Octmap effects
@@ -388,6 +389,7 @@ public:
 
 	void copy_cubemap_to_dp(RID p_source_rd_texture, RID p_dst_framebuffer, const Rect2 &p_rect, const Vector2 &p_dst_size, float p_z_near, float p_z_far, bool p_dp_flip);
 	void copy_cubemap_to_octmap(RID p_source_rd_texture, RID p_dst_framebuffer, float p_border_size);
+	void copy_panorama_to_octmap(RID p_source_rd_texture, RID p_dst_framebuffer, float p_border_size);
 	void octmap_downsample(RID p_source_octmap, RID p_dest_octmap, const Size2i &p_size, float p_border_size);
 	void octmap_downsample_raster(RID p_source_octmap, RID p_dest_framebuffer, const Size2i &p_size, float p_border_size);
 	void octmap_filter(RID p_source_octmap, const Vector<RID> &p_dest_octmap, bool p_use_array, float p_border_size);

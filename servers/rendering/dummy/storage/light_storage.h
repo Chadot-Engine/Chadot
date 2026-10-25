@@ -135,6 +135,8 @@ public:
 	virtual void reflection_probe_free(RID p_rid) override {}
 
 	virtual void reflection_probe_set_update_mode(RID p_probe, RSE::ReflectionProbeUpdateMode p_mode) override {}
+	virtual void reflection_probe_set_custom_map(RID p_probe, RID p_texture) override {}
+	virtual RID reflection_probe_get_custom_map(RID p_probe) const override { return RID(); }
 	virtual void reflection_probe_set_intensity(RID p_probe, float p_intensity) override {}
 	virtual void reflection_probe_set_blend_distance(RID p_probe, float p_blend_distance) override {}
 	virtual void reflection_probe_set_ambient_mode(RID p_probe, RSE::ReflectionProbeAmbientMode p_mode) override {}

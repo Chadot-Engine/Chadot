@@ -21,6 +21,7 @@ It provides a fully customizable rendering pipeline with support for systems suc
 - Per-Viewport Global Material Override (Environment)
 - Six-Way Lighting Volumetric/Foliage Materials Integration
 - Voxel-Friendly Triangle-Based Lightmap Unwrapper/Packer
+- Custom Panorama Reflections for Reflection Probes
 
 ### Work in Progress
 - New API and SDK for engine internals

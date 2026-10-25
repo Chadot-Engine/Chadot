@@ -260,6 +260,7 @@ private:
 		uint32_t reflection_mask = (1 << 20) - 1;
 		float mesh_lod_threshold = 0.01;
 		float baked_exposure = 1.0;
+		RID custom_map;
 
 		Dependency dependency;
 	};
@@ -880,6 +881,8 @@ public:
 	virtual void reflection_probe_free(RID p_rid) override;
 
 	virtual void reflection_probe_set_update_mode(RID p_probe, RSE::ReflectionProbeUpdateMode p_mode) override;
+	virtual void reflection_probe_set_custom_map(RID p_probe, RID p_texture) override;
+	virtual RID reflection_probe_get_custom_map(RID p_probe) const override;
 	virtual void reflection_probe_set_intensity(RID p_probe, float p_intensity) override;
 	virtual void reflection_probe_set_blend_distance(RID p_probe, float p_blend_distance) override;
 	virtual void reflection_probe_set_ambient_mode(RID p_probe, RSE::ReflectionProbeAmbientMode p_mode) override;

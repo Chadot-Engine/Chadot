@@ -160,10 +160,18 @@ CopyEffects::CopyEffects(BitField<RasterEffects> p_raster_effects) {
 
 	{
 		// Initialize cubemap to octmap copier.
-		cube_to_octmap.shader.initialize({ "" });
+		Vector<String> octmap_modes;
+		octmap_modes.push_back(""); // MODE_CUBE
+		octmap_modes.push_back("\n#define MODE_PANORAMA\n"); // MODE_PANORAMA
+
+		cube_to_octmap.shader.initialize(octmap_modes);
 		cube_to_octmap.shader_version = cube_to_octmap.shader.version_create();
-		RID shader = cube_to_octmap.shader.version_get_shader(cube_to_octmap.shader_version, 0);
-		cube_to_octmap.pipeline.setup(shader, RD::RENDER_PRIMITIVE_TRIANGLES, RD::PipelineRasterizationState(), RD::PipelineMultisampleState(), RD::PipelineDepthStencilState(), RD::PipelineColorBlendState::create_disabled());
+
+		RID shader_cube = cube_to_octmap.shader.version_get_shader(cube_to_octmap.shader_version, 0);
+		cube_to_octmap.pipeline.setup(shader_cube, RD::RENDER_PRIMITIVE_TRIANGLES, RD::PipelineRasterizationState(), RD::PipelineMultisampleState(), RD::PipelineDepthStencilState(), RD::PipelineColorBlendState::create_disabled());
+
+		RID shader_panorama = cube_to_octmap.shader.version_get_shader(cube_to_octmap.shader_version, 1);
+		cube_to_octmap.panorama_pipeline.setup(shader_panorama, RD::RENDER_PRIMITIVE_TRIANGLES, RD::PipelineRasterizationState(), RD::PipelineMultisampleState(), RD::PipelineDepthStencilState(), RD::PipelineColorBlendState::create_disabled());
 	}
 
 	{
@@ -1131,6 +1139,28 @@ void CopyEffects::copy_cubemap_to_octmap(RID p_source_rd_texture, RID p_dst_fram
 
 	RD::DrawListID draw_list = RD::get_singleton()->draw_list_begin(p_dst_framebuffer);
 	RD::get_singleton()->draw_list_bind_render_pipeline(draw_list, cube_to_octmap.pipeline.get_render_pipeline(RD::INVALID_ID, RD::get_singleton()->framebuffer_get_format(p_dst_framebuffer)));
+	RD::get_singleton()->draw_list_bind_uniform_set(draw_list, uniform_set_cache->get_cache(shader, 0, u_source_rd_texture), 0);
+	RD::get_singleton()->draw_list_bind_index_array(draw_list, material_storage->get_quad_index_array());
+	RD::get_singleton()->draw_list_set_push_constant(draw_list, &cube_to_octmap.push_constant, sizeof(CopyToOctmapPushConstant));
+	RD::get_singleton()->draw_list_draw(draw_list, true);
+	RD::get_singleton()->draw_list_end();
+}
+
+void CopyEffects::copy_panorama_to_octmap(RID p_source_rd_texture, RID p_dst_framebuffer, float p_border_size) {
+	UniformSetCacheRD *uniform_set_cache = UniformSetCacheRD::get_singleton();
+	ERR_FAIL_NULL(uniform_set_cache);
+	MaterialStorage *material_storage = MaterialStorage::get_singleton();
+	ERR_FAIL_NULL(material_storage);
+	RID shader = cube_to_octmap.shader.version_get_shader(cube_to_octmap.shader_version, 1);
+	ERR_FAIL_COND(shader.is_null());
+
+	cube_to_octmap.push_constant.border_size = 1.0f - p_border_size * 2.0f;
+
+	RID default_sampler = material_storage->sampler_rd_get_default(RSE::CANVAS_ITEM_TEXTURE_FILTER_LINEAR, RSE::CANVAS_ITEM_TEXTURE_REPEAT_ENABLED);
+	RD::Uniform u_source_rd_texture(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 0, Vector<RID>({ default_sampler, p_source_rd_texture }));
+
+	RD::DrawListID draw_list = RD::get_singleton()->draw_list_begin(p_dst_framebuffer);
+	RD::get_singleton()->draw_list_bind_render_pipeline(draw_list, cube_to_octmap.panorama_pipeline.get_render_pipeline(RD::INVALID_ID, RD::get_singleton()->framebuffer_get_format(p_dst_framebuffer)));
 	RD::get_singleton()->draw_list_bind_uniform_set(draw_list, uniform_set_cache->get_cache(shader, 0, u_source_rd_texture), 0);
 	RD::get_singleton()->draw_list_bind_index_array(draw_list, material_storage->get_quad_index_array());
 	RD::get_singleton()->draw_list_set_push_constant(draw_list, &cube_to_octmap.push_constant, sizeof(CopyToOctmapPushConstant));

@@ -6,6 +6,7 @@
 	<description>
 		Captures its surroundings as a cubemap, and stores versions of it with increasing levels of blur to simulate different material roughnesses.
 		The [ReflectionProbe] is used to create high-quality reflections at a low performance cost (when [member update_mode] is [constant UPDATE_ONCE]). [ReflectionProbe]s can be blended together and with the rest of the scene smoothly. [ReflectionProbe]s can also be combined with [VoxelGI], SDFGI ([member Environment.sdfgi_enabled]) and screen-space reflections ([member Environment.ssr_enabled]) to get more accurate reflections in specific areas. [ReflectionProbe]s render all objects within their [member cull_mask], so updating them can be quite expensive. It is best to update them once with the important static objects and then leave them as-is.
+		When [member update_mode] is [constant UPDATE_CUSTOM], the probe skips scene rendering entirely and instead uses the equirectangular panorama assigned to [member custom_map] as both the reflection and ambient source. This allows reflections to be authored or generated externally (for example, from a captured HDR panorama) without needing any geometry in the scene.
 		[b]Note:[/b] Unlike [VoxelGI] and SDFGI, [ReflectionProbe]s only source their environment from a [WorldEnvironment] node. If you specify an [Environment] resource within a [Camera3D] node, it will be ignored by the [ReflectionProbe]. This can lead to incorrect lighting within the [ReflectionProbe].
 		[b]Note:[/b] When using the Mobile rendering method, only [code]8[/code] reflection probes can be displayed on each mesh resource, while the Compatibility rendering method only supports up to [code]2[/code] reflection probes on each mesh. Attempting to display more than [code]8[/code] reflection probes on a single mesh resource using the Mobile renderer will result in reflection probes flickering in and out as the camera moves, while the Compatibility renderer will not render any additional probes if more than [code]2[/code] reflection probes are being used.
 		[b]Note:[/b] When using the Mobile rendering method, reflection probes will only correctly affect meshes whose visibility AABB intersects with the reflection probe's AABB. If using a shader to deform the mesh in a way that makes it go outside its AABB, [member GeometryInstance3D.extra_cull_margin] must be increased on the mesh. Otherwise, the reflection probe may not be visible on the mesh.
@@ -33,6 +34,12 @@
 		<member name="cull_mask" type="int" setter="set_cull_mask" getter="get_cull_mask" default="1048575">
 			Sets the cull mask which determines what objects are drawn by this probe. Every [VisualInstance3D] with a layer included in this cull mask will be rendered by the probe. It is best to only include large objects which are likely to take up a lot of space in the reflection in order to save on rendering cost.
 			This can also be used to prevent an object from reflecting upon itself (for instance, a [ReflectionProbe] centered on a vehicle).
+		</member>
+		<member name="custom_map" type="Texture2D" setter="set_custom_map" getter="get_custom_map">
+			An equirectangular panorama texture used as a custom reflection source. Only effective if [member update_mode] is [constant UPDATE_CUSTOM]. The texture is converted to a cubemap on the GPU and injected into the probe's reflection atlas, so the same texture drives both the specular reflection and the ambient contribution (subject to [member ambient_mode]).
+			The panorama should be an equirectangular projection with the horizon centered vertically, matching the layout expected by [PanoramaSkyMaterial]. The typical resolution is 2:1 (for example, [code]4096×2048[/code]).
+			If this is left unset while [member update_mode] is [constant UPDATE_CUSTOM], the probe falls back to [constant UPDATE_ONCE] behavior.
+			[b]Note:[/b] This property is only supported by the Forward+ rendering method. On Mobile and Compatibility, assigning this property has no effect and the probe renders normally.
 		</member>
 		<member name="enable_shadows" type="bool" setter="set_enable_shadows" getter="are_shadows_enabled" default="false">
 			If [code]true[/code], computes shadows in the reflection probe. This makes the reflection probe slower to render; you may want to disable this if using the [constant UPDATE_ALWAYS] [member update_mode].
@@ -62,7 +69,7 @@
 			[b]Note:[/b] To better fit areas that are not aligned to the grid, you can rotate the [ReflectionProbe] node.
 		</member>
 		<member name="update_mode" type="int" setter="set_update_mode" getter="get_update_mode" enum="ReflectionProbe.UpdateMode" default="0">
-			Sets how frequently the [ReflectionProbe] is updated. Can be [constant UPDATE_ONCE] or [constant UPDATE_ALWAYS].
+			Sets how frequently the [ReflectionProbe] is updated. Can be [constant UPDATE_ONCE], [constant UPDATE_ALWAYS], or [constant UPDATE_CUSTOM].
 		</member>
 	</members>
 	<constants>
@@ -71,6 +78,11 @@
 		</constant>
 		<constant name="UPDATE_ALWAYS" value="1" enum="UpdateMode">
 			Update the probe every frame. This provides better results for fast-moving dynamic objects (such as cars). However, it has a significant performance cost. Due to the cost, it's recommended to only use one ReflectionProbe with [constant UPDATE_ALWAYS] at most per scene. For all other use cases, use [constant UPDATE_ONCE].
+		</constant>
+		<constant name="UPDATE_CUSTOM" value="2" enum="UpdateMode">
+			Do not render the scene at all. Instead, use the equirectangular panorama assigned to [member custom_map] as the reflection source. The panorama is converted to a cubemap on the GPU and injected into the probe's reflection atlas, so it drives both specular reflections and the ambient contribution (subject to [member ambient_mode]). If [member custom_map] is not set, the probe falls back to [constant UPDATE_ONCE] behavior.
+			This mode is useful for authoring reflections from captured or procedurally generated HDR panoramas, for reflecting environments that cannot be rendered by the probe itself, or for ensuring a stable reflection when the surrounding geometry is not final yet.
+			[b]Note:[/b] This update mode is only supported by the Forward+ rendering method. On Mobile and Compatibility, selecting [constant UPDATE_CUSTOM] has no effect and the probe behaves like [constant UPDATE_ONCE].
 		</constant>
 		<constant name="AMBIENT_DISABLED" value="0" enum="AmbientMode">
 			Do not apply any ambient lighting inside the [ReflectionProbe]'s box defined by its [member size].

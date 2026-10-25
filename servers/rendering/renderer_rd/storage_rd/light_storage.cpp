@@ -1314,6 +1314,22 @@ void LightStorage::reflection_probe_set_update_mode(RID p_probe, RSE::Reflection
 	reflection_probe->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_REFLECTION_PROBE);
 }
 
+void LightStorage::reflection_probe_set_custom_map(RID p_probe, RID p_texture) {
+	ReflectionProbe *probe = reflection_probe_owner.get_or_null(p_probe);
+	ERR_FAIL_NULL(probe);
+	if (probe->custom_map == p_texture) {
+		return;
+	}
+	probe->custom_map = p_texture;
+	probe->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_REFLECTION_PROBE);
+}
+
+RID LightStorage::reflection_probe_get_custom_map(RID p_probe) const {
+	const ReflectionProbe *probe = reflection_probe_owner.get_or_null(p_probe);
+	ERR_FAIL_NULL_V(probe, RID());
+	return probe->custom_map;
+}
+
 void LightStorage::reflection_probe_set_intensity(RID p_probe, float p_intensity) {
 	ReflectionProbe *reflection_probe = reflection_probe_owner.get_or_null(p_probe);
 	ERR_FAIL_NULL(reflection_probe);
@@ -1709,8 +1725,20 @@ bool LightStorage::reflection_probe_instance_needs_redraw(RID p_instance) {
 		return true;
 	}
 
-	if (LightStorage::get_singleton()->reflection_probe_get_update_mode(rpi->probe) == RSE::REFLECTION_PROBE_UPDATE_ALWAYS) {
+	RSE::ReflectionProbeUpdateMode update_mode = reflection_probe_get_update_mode(rpi->probe);
+
+	if (update_mode == RSE::REFLECTION_PROBE_UPDATE_ALWAYS) {
 		return true;
+	}
+
+	if (update_mode == RSE::REFLECTION_PROBE_UPDATE_CUSTOM) {
+		const ReflectionProbe *probe = reflection_probe_owner.get_or_null(rpi->probe);
+		if (probe && probe->custom_map.is_valid()) {
+			// A Custom Map is Always Static, Only the initial Bake is needed.
+			// Chadot-Todo: Add "Custom Dynamic" later.
+			return rpi->atlas_index == -1;
+		}
+		// No custom map is set, fall back to the "Once" behavior.
 	}
 
 	return rpi->atlas_index == -1;
@@ -1863,8 +1891,22 @@ bool LightStorage::reflection_probe_instance_end_render(RID p_instance, RID p_re
 	ReflectionProbeInstance *rpi = reflection_probe_instance_owner.get_or_null(p_instance);
 	ERR_FAIL_NULL_V(rpi, false);
 
+	const ReflectionProbe *probe = reflection_probe_owner.get_or_null(rpi->probe);
+	const bool use_panorama = probe != nullptr && probe->update_mode == RSE::REFLECTION_PROBE_UPDATE_CUSTOM && probe->custom_map.is_valid();
+
+	RID dest_fb = atlas->reflections.write[rpi->atlas_index].data.layers[0].mipmaps[0].framebuffer;
+
 	RD::get_singleton()->draw_command_begin_label("Convert reflection probe to octahedral");
-	copy_effects->copy_cubemap_to_octmap(atlas->color_buffer, atlas->reflections.write[rpi->atlas_index].data.layers[0].mipmaps[0].framebuffer, atlas->uv_border_size);
+	if (use_panorama) {
+		RID rd_panorama = TextureStorage::get_singleton()->texture_get_rd_texture(probe->custom_map);
+		if (rd_panorama.is_valid()) {
+			copy_effects->copy_panorama_to_octmap(rd_panorama, dest_fb, atlas->uv_border_size);
+		} else {
+			copy_effects->copy_cubemap_to_octmap(atlas->color_buffer, dest_fb, atlas->uv_border_size);
+		}
+	} else {
+		copy_effects->copy_cubemap_to_octmap(atlas->color_buffer, dest_fb, atlas->uv_border_size);
+	}
 	RD::get_singleton()->draw_command_end_label();
 
 	return true;
