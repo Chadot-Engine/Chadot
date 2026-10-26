@@ -344,7 +344,7 @@ private:
 		}
 
 		Vector3 closest;
-		float closest_dist = FLT_MAX;
+		float closest_dist = std::numeric_limits<float>::max();
 
 		Vector3 edges[3] = { p_v1 - p_v0, p_v2 - p_v1, p_v0 - p_v2 };
 		Vector3 vertices[3] = { p_v0, p_v1, p_v2 };
@@ -526,7 +526,7 @@ void initialize_mesh_ex_module(ModuleInitializationLevel p_level) {
 	}
 
 	// Register Class
-	if (p_level == GDEXTENSION_INITIALIZATION_SCENE) {
+	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
 		ClassDB::register_class<MeshInstanceEx3D>();
 	}
 }

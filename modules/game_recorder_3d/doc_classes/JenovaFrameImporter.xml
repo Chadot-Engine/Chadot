@@ -1,0 +1,30 @@
+<class name="JenovaFrameImporter" inherits="Object" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		An importer that loads the proprietary Jenova Frame (.jframe) binary format sequence and animates the active scene using its data.
+	</brief_description>
+	<description>
+		[JenovaFrameImporter] is an engine singleton that imports a Jenova Frame Sequence into the active scene. Any 3D scene in the engine can be exported using [GameRecorder3D].
+		Can be accessed from [b]Scene > Import... > Import Jenova Frame Sequence...[/b]
+		[b]Note:[/b] Only available in the editor.
+	</description>
+	<tutorials>
+		<link title="Watch Tutorial">https://www.youtube.com/@memardesign</link>
+	</tutorials>
+	<methods>
+		<method name="open_import_dialog">
+			<return type="void"/>
+			<description>
+				Opens the importer dialog to import frame sequence data.
+			</description>
+		</method>
+		<method name="import_animation_sequence">
+			<return type="void"/>
+			<param index="0" name="sequence_path" type="String" />
+			<param index="1" name="framerate" type="float" />
+			<param index="2" name="validate" type="bool" />
+			<description>
+				Directly imports a frame sequence from a file using the specified framerate.
+			</description>
+		</method>
+	</methods>
+</class>

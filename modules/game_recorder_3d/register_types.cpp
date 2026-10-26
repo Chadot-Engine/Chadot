@@ -207,7 +207,7 @@ public:
 			NodeState nodeState;
 
 			// Assign Name
-			sprintf_s(nodeState.nodeName, sizeof nodeState.nodeName, "%s", node->get_name().string().utf8().get_data());
+			snprintf(nodeState.nodeName, sizeof nodeState.nodeName, "%s", node->get_name().string().utf8().get_data());
 
 			// Assign Transformation
 			nodeState.transformMode = TransformMode::TRANSFORM_GLOBAL;
@@ -238,7 +238,7 @@ public:
 					NodeState boneState;
 
 					// Assign Bone Name
-					sprintf_s(boneState.nodeName, sizeof boneState.nodeName, "%s", skeleton->get_bone_name(i).utf8().get_data());
+					snprintf(boneState.nodeName, sizeof boneState.nodeName, "%s", skeleton->get_bone_name(i).utf8().get_data());
 
 					// Assign Local Transform
 					boneState.transformMode = TransformMode::TRANSFORM_GLOBAL;
@@ -808,11 +808,11 @@ void initialize_game_recorder_3d_module(ModuleInitializationLevel p_level) {
 	}
 
 	// Register Objects
-	if (p_level == GDEXTENSION_INITIALIZATION_SCENE) {
+	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
 		// Register Classes
 		ClassDB::register_class<GameRecorder3D>();
 
-	} else if (p_level == GDEXTENSION_INITIALIZATION_EDITOR) {
+	} else if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
 		// Register Editor Classes
 		ClassDB::register_class<JenovaFrameImporter>();
 
@@ -825,7 +825,7 @@ void initialize_game_recorder_3d_module(ModuleInitializationLevel p_level) {
 void uninitialize_game_recorder_3d_module(ModuleInitializationLevel p_level) {
 
 	// Unregister Objects
-	if (p_level == GDEXTENSION_INITIALIZATION_EDITOR) {
+	if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
 		// Unregister Editor Singletons
 		if (JenovaFrameImporter::singleton) {
 			Engine::get_singleton()->remove_singleton("JenovaFrameImporter");

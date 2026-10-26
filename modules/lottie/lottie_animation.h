@@ -30,9 +30,9 @@
 #include <vector>
 
 namespace tvg {
-class SwCanvas;
-class Animation;
-class Picture;
+struct SwCanvas;
+struct Animation;
+struct Picture;
 } //namespace tvg
 
 class LottieAnimation : public Node2D {

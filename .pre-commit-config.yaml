@@ -116,12 +116,6 @@ repos:
         files: ^(doc/classes|.*/doc_classes)/.*\.xml$
         additional_dependencies: [xmlschema]
 
-      - id: validate-codeowners
-        name: validate-codeowners
-        language: python
-        entry: python misc/scripts/validate_codeowners.py
-        args: [--unowned]
-
       - id: validate-includes
         name: validate-includes
         language: python

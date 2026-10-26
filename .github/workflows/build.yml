@@ -1,0 +1,304 @@
+name: 🏗️ Release Builds
+
+on:
+  push:
+    branches: [master, main]
+    tags: ['*']
+  pull_request:
+    branches: [master, main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}|${{ github.ref_name }}
+  cancel-in-progress: true
+
+env:
+  SCONS_FLAGS: >-
+    dev_mode=no
+    module_text_server_fb_enabled=yes
+jobs:
+ 
+  windows-build:
+    name: 🏁 Windows x86_64 (${{ matrix.name }})
+    runs-on: windows-latest
+    timeout-minutes: 120
+    env:
+      SCONS_CACHE_MSVC_CONFIG: true
+      PYTHONIOENCODING: utf8
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Editor
+            target: editor
+            cache-name: windows-editor
+            scons-flags: ""
+            bin: ./bin/godot.windows.editor.x86_64.exe
+            artifact-name: godot-windows-editor
+          - name: Template
+            target: template_release
+            cache-name: windows-template
+                  
+      
+            scons-flags: production=yes
+            bin: ./bin/godot.windows.template_release.x86_64.exe
+            artifact-name: godot-windows-template
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Restore Godot build cache
+        uses: ./.github/actions/godot-cache-restore
+        with:
+          cache-name: ${{ matrix.cache-name }}
+        continue-on-error: true
+
+      - name: Setup Python and SCons
+        uses: ./.github/actions/godot-deps
+
+      - name: Download Direct3D 12 SDK components
+        shell: sh
+        id: d3d12-sdk
+        run: |
+          if python ./misc/scripts/install_d3d12_sdk_windows.py; then
+            echo "D3D12_ENABLED=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::D3D12 SDK install failed, building without D3D12."
+            echo "D3D12_ENABLED=no" >> "$GITHUB_OUTPUT"
+          fi
+        continue-on-error: true
+
+      - name: Download pre-built ANGLE
+        shell: sh
+        id: angle-sdk
+        run: |
+          if python ./misc/scripts/install_angle.py; then
+            echo "ANGLE_ENABLED=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::ANGLE install failed, building without ANGLE."
+            echo "ANGLE_ENABLED=no" >> "$GITHUB_OUTPUT"
+          fi
+        continue-on-error: true
+
+      - name: Download pre-built AccessKit
+        shell: sh
+        id: accesskit-sdk
+        run: |
+          if python ./misc/scripts/install_accesskit.py; then
+            echo "ACCESSKIT_ENABLED=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::AccessKit install failed, building without AccessKit."
+            echo "ACCESSKIT_ENABLED=no" >> "$GITHUB_OUTPUT"
+          fi
+        continue-on-error: true
+
+      - name: Compilation
+        uses: ./.github/actions/godot-build
+        with:
+          scons-flags: >-
+            ${{ env.SCONS_FLAGS }}
+            ${{ matrix.scons-flags }}
+            arch=x86_64
+            d3d12=${{ steps.d3d12-sdk.outputs.D3D12_ENABLED }}
+            angle=${{ steps.angle-sdk.outputs.ANGLE_ENABLED }}
+            accesskit=${{ steps.accesskit-sdk.outputs.ACCESSKIT_ENABLED }}
+          platform: windows
+          target: ${{ matrix.target }}
+
+      - name: Save Godot build cache
+        uses: ./.github/actions/godot-cache-save
+        with:
+          cache-name: ${{ matrix.cache-name }}
+        continue-on-error: true
+
+      - name: Prepare artifact
+        run: |
+          Remove-Item bin/build_deps -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item bin/* -Include *.exp,*.lib,*.pdb -Force
+      - name: Upload artifact
+        uses: ./.github/actions/upload-artifact
+        with:
+          name: ${{ matrix.artifact-name }}
+
+  linux-build:
+    name: 🐧 Linux x86_64 (${{ matrix.name }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Editor
+            target: editor
+            cache-name: linux-editor
+            scons-flags: debug_symbols=no
+            bin: ./bin/godot.linuxbsd.editor.x86_64
+            artifact-name: godot-linux-editor
+          - name: Template
+            target: template_release
+            cache-name: linux-template
+            scons-flags: production=yes
+            bin: ./bin/godot.linuxbsd.template_release.x86_64
+            artifact-name: godot-linux-template
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwayland-dev libxkbcommon-dev
+
+      - name: Restore Godot build cache
+        uses: ./.github/actions/godot-cache-restore
+        with:
+          cache-name: ${{ matrix.cache-name }}
+        continue-on-error: true
+
+      - name: Setup Python and SCons
+        uses: ./.github/actions/godot-deps
+
+      - name: Download pre-built AccessKit
+        shell: sh
+        id: accesskit-sdk
+        run: |
+          if python ./misc/scripts/install_accesskit.py; then
+            echo "ACCESSKIT_ENABLED=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::AccessKit install failed, building without AccessKit."
+            echo "ACCESSKIT_ENABLED=no" >> "$GITHUB_OUTPUT"
+          fi
+        continue-on-error: true
+
+      - name: Compilation
+        uses: ./.github/actions/godot-build
+        with:
+          scons-flags: >-
+            ${{ env.SCONS_FLAGS }}
+            ${{ matrix.scons-flags }}
+            arch=x86_64
+            accesskit=${{ steps.accesskit-sdk.outputs.ACCESSKIT_ENABLED }}
+          platform: linuxbsd
+          target: ${{ matrix.target }}
+
+      - name: Save Godot build cache
+        uses: ./.github/actions/godot-cache-save
+        with:
+          cache-name: ${{ matrix.cache-name }}
+        continue-on-error: true
+
+      - name: Prepare artifact
+        run: |
+          rm -rf ./bin/build_deps
+          strip bin/godot.* || true
+          chmod +x bin/godot.*
+
+      - name: Upload artifact
+        uses: ./.github/actions/upload-artifact
+        with:
+          name: ${{ matrix.artifact-name }}
+
+  macos-build:
+    name: 🍎 macOS x86_64 (${{ matrix.name }})
+    runs-on: macos-26
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Editor
+            target: editor
+            cache-name: macos-editor
+            scons-flags: debug_symbols=no
+            bin: ./bin/godot.macos.editor.x86_64
+            artifact-name: godot-macos-editor
+          - name: Template
+            target: template_release
+            cache-name: macos-template
+            scons-flags: production=yes
+            bin: ./bin/godot.macos.template_release.x86_64
+            artifact-name: godot-macos-template
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Restore Godot build cache
+        uses: ./.github/actions/godot-cache-restore
+        with:
+          cache-name: ${{ matrix.cache-name }}
+        continue-on-error: true
+
+      - name: Setup Python and SCons
+        uses: ./.github/actions/godot-deps
+
+      - name: Download pre-built ANGLE
+        shell: sh
+        id: angle-sdk
+        run: |
+          if python3 ./misc/scripts/install_angle.py; then
+            echo "ANGLE_ENABLED=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::ANGLE install failed, building without ANGLE."
+            echo "ANGLE_ENABLED=no" >> "$GITHUB_OUTPUT"
+          fi
+        continue-on-error: true
+
+      - name: Download pre-built AccessKit
+        shell: sh
+        id: accesskit-sdk
+        run: |
+          if python3 ./misc/scripts/install_accesskit.py; then
+            echo "ACCESSKIT_ENABLED=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::AccessKit install failed, building without AccessKit."
+            echo "ACCESSKIT_ENABLED=no" >> "$GITHUB_OUTPUT"
+          fi
+        continue-on-error: true
+
+      - name: Setup Vulkan SDK (MoltenVK)
+        id: vulkan-sdk
+        run: |
+          if sh misc/scripts/install_vulkan_sdk_macos.sh; then
+            echo "VULKAN_ENABLED=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Vulkan SDK install failed, building without Vulkan."
+            echo "VULKAN_ENABLED=no" >> "$GITHUB_OUTPUT"
+          fi
+        continue-on-error: true
+
+      - name: Compilation
+        uses: ./.github/actions/godot-build
+        with:
+          scons-flags: >-
+            ${{ env.SCONS_FLAGS }}
+            ${{ matrix.scons-flags }}
+            arch=x86_64
+            metal=no
+            vulkan=${{ steps.vulkan-sdk.outputs.VULKAN_ENABLED }}
+            angle=${{ steps.angle-sdk.outputs.ANGLE_ENABLED }}
+            accesskit=${{ steps.accesskit-sdk.outputs.ACCESSKIT_ENABLED }}
+          platform: macos
+          target: ${{ matrix.target }}
+
+      - name: Save Godot build cache
+        uses: ./.github/actions/godot-cache-save
+        with:
+          cache-name: ${{ matrix.cache-name }}
+        continue-on-error: true
+
+      - name: Prepare artifact
+        run: |
+          rm -rf ./bin/build_deps
+          strip bin/godot.* || true
+          chmod +x bin/godot.*
+
+      - name: Upload artifact
+        uses: ./.github/actions/upload-artifact
+        with:
+          name: ${{ matrix.artifact-name }}

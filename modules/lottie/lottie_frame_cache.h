@@ -16,7 +16,9 @@
 #include "core/string/ustring.h"
 #include "scene/resources/image_texture.h"
 
+#include <string>
 #include <list>
+#include <functional>
 #include <unordered_map>
 
 class LottieFrameCache {
