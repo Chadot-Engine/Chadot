@@ -308,6 +308,7 @@ Lightmapper::BakeError LightmapperRD::_blit_meshes_into_atlas(int p_max_texture_
 	// Per-Object Packing Mode
 	if (GLOBAL_GET("rendering/lightmapping/atlas/per_object_slices")) {
 		Vector<Size2i> sizes;
+		int max_dim = 1;
 
 		for (int m_i = 0; m_i < mesh_instances.size(); m_i++) {
 			MeshInstance &mi = mesh_instances.write[m_i];
@@ -316,9 +317,12 @@ Lightmapper::BakeError LightmapperRD::_blit_meshes_into_atlas(int p_max_texture_
 				return BAKE_ERROR_TEXTURE_EXCEEDS_MAX_SIZE;
 			}
 			sizes.push_back(s);
+			max_dim = MAX(max_dim, MAX(s.width, s.height));
 		}
 
 		atlas_slices = mesh_instances.size();
+		atlas_size = Size2i(max_dim, max_dim);
+
 		albedo_images.resize(atlas_slices);
 		emission_images.resize(atlas_slices);
 
@@ -329,11 +333,11 @@ Lightmapper::BakeError LightmapperRD::_blit_meshes_into_atlas(int p_max_texture_
 		}
 
 		for (int i = 0; i < atlas_slices; i++) {
-			Ref<Image> albedo = Image::create_empty(sizes[i].width, sizes[i].height, false, Image::FORMAT_RGBA8);
+			Ref<Image> albedo = Image::create_empty(atlas_size.width, atlas_size.height, false, Image::FORMAT_RGBA8);
 			albedo->set_as_black();
 			albedo_images.write[i] = albedo;
 
-			Ref<Image> emission = Image::create_empty(sizes[i].width, sizes[i].height, false, Image::FORMAT_RGBAH);
+			Ref<Image> emission = Image::create_empty(atlas_size.width, atlas_size.height, false, Image::FORMAT_RGBAH);
 			emission->set_as_black();
 			emission_images.write[i] = emission;
 		}
@@ -348,15 +352,21 @@ Lightmapper::BakeError LightmapperRD::_blit_meshes_into_atlas(int p_max_texture_
 			MeshInstance &mi = mesh_instances.write[m_i];
 			mi.offset = Vector2i(0, 0);
 			mi.slice = m_i;
-			albedo_images.write[mi.slice]->blit_rect(mi.data.albedo_on_uv2, Rect2i(Vector2i(), mi.data.albedo_on_uv2->get_size()), mi.offset);
-			emission_images.write[mi.slice]->blit_rect(mi.data.emission_on_uv2, Rect2(Vector2i(), mi.data.emission_on_uv2->get_size()), mi.offset);
-		}
 
-		Size2i max_sz(1, 1);
-		for (int i = 0; i < sizes.size(); i++) {
-			max_sz = max_sz.max(sizes[i]);
+			Ref<Image> albedo = mi.data.albedo_on_uv2;
+			if (albedo->get_width() != atlas_size.width || albedo->get_height() != atlas_size.height) {
+				albedo = albedo->duplicate();
+				albedo->resize(atlas_size.width, atlas_size.height, Image::INTERPOLATE_BILINEAR);
+			}
+			albedo_images.write[mi.slice]->blit_rect(albedo, Rect2i(Vector2i(), atlas_size), mi.offset);
+
+			Ref<Image> emission = mi.data.emission_on_uv2;
+			if (emission->get_width() != atlas_size.width || emission->get_height() != atlas_size.height) {
+				emission = emission->duplicate();
+				emission->resize(atlas_size.width, atlas_size.height, Image::INTERPOLATE_BILINEAR);
+			}
+			emission_images.write[mi.slice]->blit_rect(emission, Rect2i(Vector2i(), atlas_size), mi.offset);
 		}
-		atlas_size = max_sz;
 
 		return BAKE_OK;
 	}
@@ -518,8 +528,28 @@ void LightmapperRD::_create_acceleration_structures(RenderingDevice *rd, Size2i 
 
 		MeshInstance &mi = mesh_instances.write[m_i];
 
-		Vector2 uv_scale = Vector2(mi.data.albedo_on_uv2->get_width(), mi.data.albedo_on_uv2->get_height()) / Vector2(atlas_size);
-		Vector2 uv_offset = Vector2(mi.offset) / Vector2(atlas_size);
+		Vector2 uv_scale;
+		Vector2 uv_offset;
+		if (GLOBAL_GET("rendering/lightmapping/atlas/per_object_slices")) {
+			Vector2 uv_min(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
+			Vector2 uv_max(-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max());
+			for (int i = 0; i < mi.data.uv2.size(); i++) {
+				uv_min = uv_min.min(mi.data.uv2[i]);
+				uv_max = uv_max.max(mi.data.uv2[i]);
+			}
+			Vector2 uv_size = uv_max - uv_min;
+			if (uv_size.x > 0.0001f && uv_size.y > 0.0001f) {
+				uv_scale = Vector2(1.0f, 1.0f) / uv_size;
+				uv_offset = -uv_min * uv_scale;
+			} else {
+				uv_scale = Vector2(1, 1);
+				uv_offset = Vector2(0, 0);
+			}
+		} else {
+			uv_scale = Vector2(mi.data.albedo_on_uv2->get_width(), mi.data.albedo_on_uv2->get_height()) / Vector2(atlas_size);
+			uv_offset = Vector2(mi.offset) / Vector2(atlas_size);
+		}
+
 		if (m_i == 0) {
 			bounds.position = mi.data.points[0];
 		}
@@ -2530,6 +2560,9 @@ Variant LightmapperRD::get_bake_mesh_userdata(int p_index) const {
 
 Rect2 LightmapperRD::get_bake_mesh_uv_scale(int p_index) const {
 	ERR_FAIL_COND_V(lightmap_textures.is_empty(), Rect2());
+	if (GLOBAL_GET("rendering/lightmapping/atlas/per_object_slices")) {
+		return Rect2(0, 0, 1, 1);
+	}
 	Rect2 uv_ofs;
 	Vector2 atlas_size = Vector2(lightmap_textures[0]->get_width(), lightmap_textures[0]->get_height());
 	uv_ofs.position = Vector2(mesh_instances[p_index].offset) / atlas_size;
