@@ -41,7 +41,9 @@ Some features may be licensed under the **PJPPL v1.0** or other licenses specifi
 ### Projekt Jenova Public Proprietary License (PJPPL v1.0)
 Code licensed under PJPPL v1.0 is publicly visible for transparency and integration with the Chadot source tree. However, visibility of the source code does not grant permission to copy, redistribute, modify, reuse or incorporate that code into other projects unless explicitly permitted by its license.
 
-Features distributed under PJPPL v1.0 may only be used through official Chadot binaries provided by the author. Any use of the licensed code outside of those official distributions is prohibited unless prior written permission has been granted.
+Features distributed under PJPPL v1.0 may only be used through official binaries provided by the author. Any use of the licensed code outside of those official distributions is prohibited unless prior written permission has been granted.
+
+Engine binaries can be verified by their SHA-256 hash and checked against [the official registry](https://chadot-engine.github.io/authorized-builds/). **As long as the engine binaries remain unmodified and match the hashes provided by the registry, they comply with the license and are allowed to be used and redistributed.**
 
 The terms of PJPPL v1.0 and other Chadot specific licenses may be revised in future versions.
 
