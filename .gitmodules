@@ -1,3 +1,4 @@
 [submodule "modules/dlss_nr"]
 	path = modules/dlss_nr
 	url = https://github.com/Chadot-Engine/Chadot-Module-DLSSNRD312
+	branch = master
