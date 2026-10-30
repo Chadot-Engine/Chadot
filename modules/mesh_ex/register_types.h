@@ -7,7 +7,7 @@
 /*                             CHADOT ENGINE                              */
 /*                    https://chadotengine.github.io                      */
 /**************************************************************************/
-/* Copyright (c) 2024-present MemarDesign™ LLC.                            */
+/* Copyright (c) 2024-present MemarDesign™ LLC.                           */
 /**************************************************************************/
 
 #ifndef MESH_EX_REGISTER_TYPES_H
