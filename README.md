@@ -13,6 +13,7 @@ It provides a fully customizable rendering pipeline with support for systems suc
 ## Current Features
 - Compatible with [Jenova Framework](https://github.com/Jenova-Framework)
 - Per-Light Hybrid Light Mapping and Shadow-Masking (PHLMS)
+- Neural Renderer Integration Powered by NVIDIA™ DLSS 5 (DirectX 12)
 - MeshInstanceEx3D (aka RayCompute3D) Integration
 - GameRecorder3D Integration for Cinematic/Replay
 - Full GBuffer Access in Post-Processing Shaders
@@ -25,7 +26,7 @@ It provides a fully customizable rendering pipeline with support for systems suc
 
 ### Work in Progress
 - New API and SDK for engine internals
-- DLSS 5 upscaling and neural rendering integration
+- DLSS 5 upscaling integration
 - ReLight lightmapper integration
   
 ## License
