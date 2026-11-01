@@ -348,6 +348,39 @@
 			Determines how sharp the upscaled image will be when using the FSR upscaling mode. Sharpness halves with every whole number. Values go from 0.0 (sharpest) to 2.0. Values above 2.0 won't make a visible difference.
 			To control this property on the root viewport, set the [member ProjectSettings.rendering/scaling_3d/fsr_sharpness] project setting.
 		</member>
+		<member name="dlss_quality" type="int" setter="" getter="" default="1">
+			Sets the DLSS quality mode. Each mode corresponds to a fixed internal render resolution ratio:
+			- [b]DLAA[/b] ([code]0[/code]): 1.0×, no upscaling, anti-aliasing only.
+			- [b]Quality[/b] ([code]1[/code]): 1.5×.
+			- [b]Balanced[/b] ([code]2[/code]): 1.7×.
+			- [b]Performance[/b] ([code]3[/code]): 2.0×.
+			- [b]Ultra Performance[/b] ([code]4[/code]): 3.0×.
+			[b]Note:[/b] This setting is only effective when [member mode] is set to a DLSS mode. Requires a Direct3D 12 rendering driver and an NVIDIA RTX GPU with [code]nvngx_dlss.dll[/code] available next to the executable.
+		</member>
+		<member name="dlss_preset" type="int" setter="" getter="" default="0">
+			Selects the DLSS model preset. The available values are:
+			- [b]Default[/b] ([code]0[/code]): Let the driver choose, may change via over-the-air updates.
+			- [b]J[/b] ([code]10[/code]), [b]K[/b] ([code]11[/code]), [b]L[/b] ([code]12[/code]), [b]M[/b] ([code]13[/code]), [b]N[/b] ([code]14[/code]), [b]O[/b] ([code]15[/code]): Specific model variants. J reduces ghosting but may shimmer; K is the main preset for Quality/Balanced/DLAA; L and M are tuned for Ultra Performance and Performance respectively.
+			[b]Note:[/b] Presets A-G ([code]1[/code]-[code]7[/code]) are deprecated by NVIDIA and ignored by current DLSS SDKs. Selecting them has the same effect as [b]Default[/b].
+		</member>
+		<member name="dlss_sharpness" type="float" setter="" getter="" default="0.0" deprecated="This setting is deprecated by NVIDIA and ignored by current DLSS SDKs. Sharpening has been removed from DLSS Super Resolution, and this property has no effect.">
+			Determines the amount of sharpening applied to the DLSS output. Values go from [code]0.0[/code] (no sharpening) to [code]1.0[/code].
+		</member>
+		<member name="dlss_hdr" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], DLSS treats the input color buffer as HDR. Enable this when the viewport renders in HDR; disable it for SDR viewports.
+		</member>
+		<member name="dlss_auto_exposure" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], DLSS handles exposure internally. If [code]false[/code], an exposure texture must be supplied by the renderer, otherwise DLSS will reject the frame with an [code]InvalidParameter[/code] error.
+		</member>
+		<member name="dlss_alpha_upscaling" type="bool" setter="" getter="" default="false">
+			If [code]true[/code], DLSS upscales the alpha channel along with the color channels. Enable this when the alpha channel of the color buffer needs to be preserved after upscaling, at a small performance cost.
+		</member>
+		<member name="dlss_depth_inverted" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], DLSS treats the depth buffer as using an inverted depth range (near = [code]1.0[/code], far = [code]0.0[/code]). Godot uses reverse-Z depth, so this should normally remain enabled. Only disable it if the depth buffer convention has been changed.
+		</member>
+		<member name="dlss_mv_low_res" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], motion vectors are provided at render resolution (low resolution). If [code]false[/code], motion vectors are expected at display resolution. Enable this when velocity buffers match the internal render size, which is the default in Godot.
+		</member>
 		<member name="global_canvas_transform" type="Transform2D" setter="set_global_canvas_transform" getter="get_global_canvas_transform">
 			The global canvas transform of the viewport. The canvas transform is relative to this.
 		</member>
