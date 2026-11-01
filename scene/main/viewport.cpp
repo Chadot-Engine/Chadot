@@ -5144,6 +5144,133 @@ float Viewport::get_fsr_sharpness() const {
 	return fsr_sharpness;
 }
 
+#ifdef DLSS_FEATURE_ENABLED
+void Viewport::set_dlss_quality(int p_quality) {
+	ERR_MAIN_THREAD_GUARD;
+	p_quality = CLAMP(p_quality, 0, 4);
+	if (dlss_quality == p_quality) {
+		return;
+	}
+
+	dlss_quality = p_quality;
+	RS::get_singleton()->viewport_set_dlss_quality(viewport, p_quality);
+}
+
+int Viewport::get_dlss_quality() const {
+	ERR_READ_THREAD_GUARD_V(1);
+	return dlss_quality;
+}
+
+void Viewport::set_dlss_preset(int p_preset) {
+	ERR_MAIN_THREAD_GUARD;
+	if (dlss_preset == p_preset) {
+		return;
+	}
+
+	dlss_preset = p_preset;
+	RS::get_singleton()->viewport_set_dlss_preset(viewport, p_preset);
+}
+
+int Viewport::get_dlss_preset() const {
+	ERR_READ_THREAD_GUARD_V(0);
+	return dlss_preset;
+}
+
+void Viewport::set_dlss_sharpness(float p_sharpness) {
+	ERR_MAIN_THREAD_GUARD;
+	if (dlss_sharpness == p_sharpness) {
+		return;
+	}
+
+	if (p_sharpness < 0.0f) {
+		p_sharpness = 0.0f;
+	}
+
+	dlss_sharpness = p_sharpness;
+	RS::get_singleton()->viewport_set_dlss_sharpness(viewport, p_sharpness);
+}
+
+float Viewport::get_dlss_sharpness() const {
+	ERR_READ_THREAD_GUARD_V(0.0f);
+	return dlss_sharpness;
+}
+
+void Viewport::set_dlss_hdr(bool p_enabled) {
+	ERR_MAIN_THREAD_GUARD;
+	if (dlss_hdr == p_enabled) {
+		return;
+	}
+
+	dlss_hdr = p_enabled;
+	RS::get_singleton()->viewport_set_dlss_hdr(viewport, p_enabled);
+}
+
+bool Viewport::get_dlss_hdr() const {
+	ERR_READ_THREAD_GUARD_V(true);
+	return dlss_hdr;
+}
+
+void Viewport::set_dlss_auto_exposure(bool p_enabled) {
+	ERR_MAIN_THREAD_GUARD;
+	if (dlss_auto_exposure == p_enabled) {
+		return;
+	}
+
+	dlss_auto_exposure = p_enabled;
+	RS::get_singleton()->viewport_set_dlss_auto_exposure(viewport, p_enabled);
+}
+
+bool Viewport::get_dlss_auto_exposure() const {
+	ERR_READ_THREAD_GUARD_V(true);
+	return dlss_auto_exposure;
+}
+
+void Viewport::set_dlss_alpha_upscaling(bool p_enabled) {
+	ERR_MAIN_THREAD_GUARD;
+	if (dlss_alpha_upscaling == p_enabled) {
+		return;
+	}
+
+	dlss_alpha_upscaling = p_enabled;
+	RS::get_singleton()->viewport_set_dlss_alpha_upscaling(viewport, p_enabled);
+}
+
+bool Viewport::get_dlss_alpha_upscaling() const {
+	ERR_READ_THREAD_GUARD_V(false);
+	return dlss_alpha_upscaling;
+}
+
+void Viewport::set_dlss_depth_inverted(bool p_enabled) {
+	ERR_MAIN_THREAD_GUARD;
+	if (dlss_depth_inverted == p_enabled) {
+		return;
+	}
+
+	dlss_depth_inverted = p_enabled;
+	RS::get_singleton()->viewport_set_dlss_depth_inverted(viewport, p_enabled);
+}
+
+bool Viewport::get_dlss_depth_inverted() const {
+	ERR_READ_THREAD_GUARD_V(true);
+	return dlss_depth_inverted;
+}
+
+void Viewport::set_dlss_mv_low_res(bool p_enabled) {
+	ERR_MAIN_THREAD_GUARD;
+	if (dlss_mv_low_res == p_enabled) {
+		return;
+	}
+
+	dlss_mv_low_res = p_enabled;
+	RS::get_singleton()->viewport_set_dlss_mv_low_res(viewport, p_enabled);
+}
+
+bool Viewport::get_dlss_mv_low_res() const {
+	ERR_READ_THREAD_GUARD_V(true);
+	return dlss_mv_low_res;
+}
+#endif
+
 void Viewport::set_texture_mipmap_bias(float p_texture_mipmap_bias) {
 	ERR_MAIN_THREAD_GUARD;
 	if (texture_mipmap_bias == p_texture_mipmap_bias) {
@@ -5379,6 +5506,32 @@ void Viewport::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_fsr_sharpness", "fsr_sharpness"), &Viewport::set_fsr_sharpness);
 	ClassDB::bind_method(D_METHOD("get_fsr_sharpness"), &Viewport::get_fsr_sharpness);
 
+#ifdef DLSS_FEATURE_ENABLED
+	ClassDB::bind_method(D_METHOD("set_dlss_quality", "quality"), &Viewport::set_dlss_quality);
+	ClassDB::bind_method(D_METHOD("get_dlss_quality"), &Viewport::get_dlss_quality);
+
+	ClassDB::bind_method(D_METHOD("set_dlss_preset", "preset"), &Viewport::set_dlss_preset);
+	ClassDB::bind_method(D_METHOD("get_dlss_preset"), &Viewport::get_dlss_preset);
+
+	ClassDB::bind_method(D_METHOD("set_dlss_sharpness", "sharpness"), &Viewport::set_dlss_sharpness);
+	ClassDB::bind_method(D_METHOD("get_dlss_sharpness"), &Viewport::get_dlss_sharpness);
+
+	ClassDB::bind_method(D_METHOD("set_dlss_hdr", "enabled"), &Viewport::set_dlss_hdr);
+	ClassDB::bind_method(D_METHOD("get_dlss_hdr"), &Viewport::get_dlss_hdr);
+
+	ClassDB::bind_method(D_METHOD("set_dlss_auto_exposure", "enabled"), &Viewport::set_dlss_auto_exposure);
+	ClassDB::bind_method(D_METHOD("get_dlss_auto_exposure"), &Viewport::get_dlss_auto_exposure);
+
+	ClassDB::bind_method(D_METHOD("set_dlss_alpha_upscaling", "enabled"), &Viewport::set_dlss_alpha_upscaling);
+	ClassDB::bind_method(D_METHOD("get_dlss_alpha_upscaling"), &Viewport::get_dlss_alpha_upscaling);
+
+	ClassDB::bind_method(D_METHOD("set_dlss_depth_inverted", "enabled"), &Viewport::set_dlss_depth_inverted);
+	ClassDB::bind_method(D_METHOD("get_dlss_depth_inverted"), &Viewport::get_dlss_depth_inverted);
+
+	ClassDB::bind_method(D_METHOD("set_dlss_mv_low_res", "enabled"), &Viewport::set_dlss_mv_low_res);
+	ClassDB::bind_method(D_METHOD("get_dlss_mv_low_res"), &Viewport::get_dlss_mv_low_res);
+#endif
+
 	ClassDB::bind_method(D_METHOD("set_texture_mipmap_bias", "texture_mipmap_bias"), &Viewport::set_texture_mipmap_bias);
 	ClassDB::bind_method(D_METHOD("get_texture_mipmap_bias"), &Viewport::get_texture_mipmap_bias);
 
@@ -5419,11 +5572,27 @@ void Viewport::_bind_methods() {
 
 #ifndef _3D_DISABLED
 	ADD_GROUP("Scaling 3D", "");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "scaling_3d_mode", PROPERTY_HINT_ENUM, "Nearest (Fastest):5,Bilinear (Fastest):0,FSR 1.0 (Fast):1,FSR 2.2 (Slow):2,MetalFX (Spatial - Fast):3,MetalFX (Temporal - Slow):4"), "set_scaling_3d_mode", "get_scaling_3d_mode");
+	{
+		String scaling_3d_mode_hints = "Nearest (Fastest):5,Bilinear (Fastest):0,FSR 1.0 (Fast):1,FSR 2.2 (Slow):2,MetalFX (Spatial - Fast):3,MetalFX (Temporal - Slow):4";
+#ifdef DLSS_FEATURE_ENABLED
+		scaling_3d_mode_hints += String::utf8(",NVIDIA™ DLSS 5:6");
+#endif
+		ADD_PROPERTY(PropertyInfo(Variant::INT, "scaling_3d_mode", PROPERTY_HINT_ENUM, scaling_3d_mode_hints), "set_scaling_3d_mode", "get_scaling_3d_mode");
+	}
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "scaling_3d_scale", PROPERTY_HINT_RANGE, "0.1,2.0,0.0001"), "set_scaling_3d_scale", "get_scaling_3d_scale");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "texture_mipmap_bias", PROPERTY_HINT_RANGE, "-2,2,0.001"), "set_texture_mipmap_bias", "get_texture_mipmap_bias");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "anisotropic_filtering_level", PROPERTY_HINT_ENUM, String::utf8("Disabled (Fastest),2× (Faster),4× (Fast),8× (Average),16x (Slow)")), "set_anisotropic_filtering_level", "get_anisotropic_filtering_level");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "fsr_sharpness", PROPERTY_HINT_RANGE, "0,2,0.01"), "set_fsr_sharpness", "get_fsr_sharpness");
+#ifdef DLSS_FEATURE_ENABLED
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "dlss_quality", PROPERTY_HINT_ENUM, "DLAA:0,Quality:1,Balanced:2,Performance:3,UltraPerformance:4"), "set_dlss_quality", "get_dlss_quality");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "dlss_preset", PROPERTY_HINT_ENUM, "Default:0,A:1,B:2,C:3,D:4,E:5,F:6,G:7,J:10,K:11,L:12,M:13,N:14,O:15"), "set_dlss_preset", "get_dlss_preset");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "dlss_sharpness", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_dlss_sharpness", "get_dlss_sharpness");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "dlss_hdr"), "set_dlss_hdr", "get_dlss_hdr");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "dlss_auto_exposure"), "set_dlss_auto_exposure", "get_dlss_auto_exposure");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "dlss_alpha_upscaling"), "set_dlss_alpha_upscaling", "get_dlss_alpha_upscaling");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "dlss_depth_inverted"), "set_dlss_depth_inverted", "get_dlss_depth_inverted");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "dlss_mv_low_res"), "set_dlss_mv_low_res", "get_dlss_mv_low_res");
+#endif
 	ADD_GROUP("Variable Rate Shading", "vrs_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "vrs_mode", PROPERTY_HINT_ENUM, "Disabled,Texture,XR"), "set_vrs_mode", "get_vrs_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "vrs_update_mode", PROPERTY_HINT_ENUM, "Disabled,Once,Always"), "set_vrs_update_mode", "get_vrs_update_mode");
@@ -5630,6 +5799,16 @@ Viewport::Viewport() {
 	set_scaling_3d_mode((Viewport::Scaling3DMode)(int)GLOBAL_GET("rendering/scaling_3d/mode"));
 	set_scaling_3d_scale(GLOBAL_GET("rendering/scaling_3d/scale"));
 	set_fsr_sharpness((float)GLOBAL_GET("rendering/scaling_3d/fsr_sharpness"));
+#ifdef DLSS_FEATURE_ENABLED
+	set_dlss_quality((int)GLOBAL_GET("rendering/scaling_3d/dlss_quality"));
+	set_dlss_preset((int)GLOBAL_GET("rendering/scaling_3d/dlss_preset"));
+	set_dlss_sharpness((float)GLOBAL_GET("rendering/scaling_3d/dlss_sharpness"));
+	set_dlss_hdr((bool)GLOBAL_GET("rendering/scaling_3d/dlss_hdr"));
+	set_dlss_auto_exposure((bool)GLOBAL_GET("rendering/scaling_3d/dlss_auto_exposure"));
+	set_dlss_alpha_upscaling((bool)GLOBAL_GET("rendering/scaling_3d/dlss_alpha_upscaling"));
+	set_dlss_depth_inverted((bool)GLOBAL_GET("rendering/scaling_3d/dlss_depth_inverted"));
+	set_dlss_mv_low_res((bool)GLOBAL_GET("rendering/scaling_3d/dlss_mv_low_res"));
+#endif
 	set_texture_mipmap_bias((float)GLOBAL_GET("rendering/textures/default_filters/texture_mipmap_bias"));
 	set_anisotropic_filtering_level((Viewport::AnisotropicFiltering)(int)GLOBAL_GET("rendering/textures/default_filters/anisotropic_filtering_level"));
 #endif // _3D_DISABLED

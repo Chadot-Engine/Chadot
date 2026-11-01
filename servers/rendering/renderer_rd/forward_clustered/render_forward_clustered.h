@@ -42,6 +42,10 @@
 #include "servers/rendering/renderer_rd/shaders/forward_clustered/best_fit_normal.glsl.gen.h"
 #include "servers/rendering/renderer_rd/shaders/forward_clustered/integrate_dfg.glsl.gen.h"
 
+#ifdef DLSS_FEATURE_ENABLED
+#include "modules/dlss/dlss_sr.h"
+#endif
+
 #ifdef METAL_ENABLED
 #include "servers/rendering/renderer_rd/effects/metal_fx.h"
 #endif
@@ -98,6 +102,9 @@ public:
 	private:
 		RenderSceneBuffersRD *render_buffers = nullptr;
 		RendererRD::FSR2Context *fsr2_context = nullptr;
+#ifdef DLSS_FEATURE_ENABLED
+		RendererRD::DLSSContext *dlss_context = nullptr;
+#endif
 #ifdef METAL_MFXTEMPORAL_ENABLED
 		RendererRD::MFXTemporalContext *mfx_temporal_context = nullptr;
 #endif
@@ -153,6 +160,11 @@ public:
 
 		void ensure_fsr2(RendererRD::FSR2Effect *p_effect);
 		RendererRD::FSR2Context *get_fsr2_context() const { return fsr2_context; }
+
+#ifdef DLSS_FEATURE_ENABLED
+		void ensure_dlss(RendererRD::DLSSEffect *p_effect);
+		RendererRD::DLSSContext *get_dlss_context() { return dlss_context; }
+#endif
 
 #ifdef METAL_MFXTEMPORAL_ENABLED
 		bool ensure_mfx_temporal(RendererRD::MFXTemporalEffect *p_effect);
@@ -776,6 +788,9 @@ private:
 
 	RendererRD::TAA *taa = nullptr;
 	RendererRD::FSR2Effect *fsr2_effect = nullptr;
+#ifdef DLSS_FEATURE_ENABLED
+	RendererRD::DLSSEffect *dlss_effect = nullptr;
+#endif
 	RendererRD::SSEffects *ss_effects = nullptr;
 
 #ifdef METAL_MFXTEMPORAL_ENABLED

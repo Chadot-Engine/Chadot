@@ -49,6 +49,16 @@ private:
 	RSE::ViewportAnisotropicFiltering anisotropic_filtering_level = RSE::VIEWPORT_ANISOTROPY_4X;
 
 	float fsr_sharpness = 0.0;
+#ifdef DLSS_FEATURE_ENABLED
+	int dlss_quality = 1;
+	int dlss_preset = 0;
+	float dlss_sharpness = 0.0f;
+	bool dlss_hdr = true;
+	bool dlss_auto_exposure = true;
+	bool dlss_alpha_upscaling = false;
+	bool dlss_depth_inverted = true;
+	bool dlss_mv_low_res = true;
+#endif
 	float texture_mipmap_bias = 0.0;
 	bool use_taa = false;
 	bool use_debanding = false;
@@ -81,6 +91,32 @@ public:
 	float get_fsr_sharpness() const { return fsr_sharpness; }
 	void set_fsr_sharpness(float p_fsr_sharpness) { fsr_sharpness = p_fsr_sharpness; }
 
+#ifdef DLSS_FEATURE_ENABLED
+	int get_dlss_quality() const { return dlss_quality; }
+	void set_dlss_quality(int p_quality) { dlss_quality = p_quality; }
+
+	int get_dlss_preset() const { return dlss_preset; }
+	void set_dlss_preset(int p_preset) { dlss_preset = p_preset; }
+
+	float get_dlss_sharpness() const { return dlss_sharpness; }
+	void set_dlss_sharpness(float p_sharpness) { dlss_sharpness = p_sharpness; }
+
+	bool get_dlss_hdr() const { return dlss_hdr; }
+	void set_dlss_hdr(bool p_enabled) { dlss_hdr = p_enabled; }
+
+	bool get_dlss_auto_exposure() const { return dlss_auto_exposure; }
+	void set_dlss_auto_exposure(bool p_enabled) { dlss_auto_exposure = p_enabled; }
+
+	bool get_dlss_alpha_upscaling() const { return dlss_alpha_upscaling; }
+	void set_dlss_alpha_upscaling(bool p_enabled) { dlss_alpha_upscaling = p_enabled; }
+
+	bool get_dlss_depth_inverted() const { return dlss_depth_inverted; }
+	void set_dlss_depth_inverted(bool p_enabled) { dlss_depth_inverted = p_enabled; }
+
+	bool get_dlss_mv_low_res() const { return dlss_mv_low_res; }
+	void set_dlss_mv_low_res(bool p_enabled) { dlss_mv_low_res = p_enabled; }
+#endif
+
 	float get_texture_mipmap_bias() const { return texture_mipmap_bias; }
 	void set_texture_mipmap_bias(float p_texture_mipmap_bias) { texture_mipmap_bias = p_texture_mipmap_bias; }
 
@@ -111,6 +147,16 @@ public:
 
 	// for those settings that are unlikely to require buffers to be recreated, we'll add setters
 	virtual void set_fsr_sharpness(float p_fsr_sharpness) = 0;
+#ifdef DLSS_FEATURE_ENABLED
+	virtual void set_dlss_quality(int p_quality) = 0;
+	virtual void set_dlss_preset(int p_preset) = 0;
+	virtual void set_dlss_sharpness(float p_sharpness) = 0;
+	virtual void set_dlss_hdr(bool p_enabled) = 0;
+	virtual void set_dlss_auto_exposure(bool p_enabled) = 0;
+	virtual void set_dlss_alpha_upscaling(bool p_enabled) = 0;
+	virtual void set_dlss_depth_inverted(bool p_enabled) = 0;
+	virtual void set_dlss_mv_low_res(bool p_enabled) = 0;
+#endif
 	virtual void set_texture_mipmap_bias(float p_texture_mipmap_bias) = 0;
 	virtual void set_anisotropic_filtering_level(RSE::ViewportAnisotropicFiltering p_anisotropic_filtering_level) = 0;
 	virtual void set_use_debanding(bool p_use_debanding) = 0;

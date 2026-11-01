@@ -106,6 +106,16 @@ public:
 
 	virtual void set_anisotropic_filtering_level(RSE::ViewportAnisotropicFiltering p_anisotropic_filtering_level) override {}
 	virtual void set_fsr_sharpness(float p_fsr_sharpness) override {}
+#ifdef DLSS_FEATURE_ENABLED
+	virtual void set_dlss_quality(int p_quality) override {}
+	virtual void set_dlss_preset(int p_preset) override {}
+	virtual void set_dlss_sharpness(float p_sharpness) override {}
+	virtual void set_dlss_hdr(bool p_enabled) override {}
+	virtual void set_dlss_auto_exposure(bool p_enabled) override {}
+	virtual void set_dlss_alpha_upscaling(bool p_enabled) override {}
+	virtual void set_dlss_depth_inverted(bool p_enabled) override {}
+	virtual void set_dlss_mv_low_res(bool p_enabled) override {}
+#endif
 	virtual void set_texture_mipmap_bias(float p_texture_mipmap_bias) override {}
 	virtual void set_use_debanding(bool p_use_debanding) override {}
 	void set_apply_environment_effects_in_post(bool p_apply_environment_effects_in_post);

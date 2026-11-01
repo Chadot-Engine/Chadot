@@ -470,7 +470,11 @@ void RendererSceneRenderRD::_render_buffers_post_process_and_tonemap(const Rende
 	bool can_use_storage = _render_buffers_can_be_storage();
 
 	RSE::ViewportScaling3DMode scale_mode = rb->get_scaling_3d_mode();
-	bool use_upscaled_texture = rb->has_upscaled_texture() && (scale_mode == RSE::VIEWPORT_SCALING_3D_MODE_FSR2 || scale_mode == RSE::VIEWPORT_SCALING_3D_MODE_METALFX_TEMPORAL);
+	bool use_upscaled_texture = rb->has_upscaled_texture() && (scale_mode == RSE::VIEWPORT_SCALING_3D_MODE_FSR2 || scale_mode == RSE::VIEWPORT_SCALING_3D_MODE_METALFX_TEMPORAL
+#ifdef DLSS_FEATURE_ENABLED
+	|| scale_mode == RSE::VIEWPORT_SCALING_3D_MODE_DLSS
+#endif
+			);
 	SpatialUpscaler *spatial_upscaler = nullptr;
 	if (can_use_effects) {
 		if (scale_mode == RSE::VIEWPORT_SCALING_3D_MODE_FSR) {

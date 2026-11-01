@@ -108,6 +108,14 @@ void RenderForwardClustered::RenderBufferDataForwardClustered::ensure_fsr2(Rende
 	}
 }
 
+#ifdef DLSS_FEATURE_ENABLED
+void RenderForwardClustered::RenderBufferDataForwardClustered::ensure_dlss(RendererRD::DLSSEffect *p_effect) {
+	if (dlss_context == nullptr) {
+		dlss_context = p_effect->create_context(render_buffers->get_internal_size(), render_buffers->get_target_size());
+	}
+}
+#endif
+
 #ifdef METAL_MFXTEMPORAL_ENABLED
 bool RenderForwardClustered::RenderBufferDataForwardClustered::ensure_mfx_temporal(RendererRD::MFXTemporalEffect *p_effect) {
 	if (mfx_temporal_context == nullptr) {
@@ -147,6 +155,13 @@ void RenderForwardClustered::RenderBufferDataForwardClustered::free_data() {
 		memdelete(fsr2_context);
 		fsr2_context = nullptr;
 	}
+
+#ifdef DLSS_FEATURE_ENABLED
+	if (dlss_context) {
+		memdelete(dlss_context);
+		dlss_context = nullptr;
+	}
+#endif
 
 #ifdef METAL_MFXTEMPORAL_ENABLED
 	if (mfx_temporal_context) {
@@ -1138,8 +1153,9 @@ void RenderForwardClustered::_fill_render_list(RenderListType p_render_list, con
 				bool uses_particles = inst->base_flags & INSTANCE_DATA_FLAG_PARTICLES;
 				bool is_multimesh_with_motion = !uses_particles && (inst->base_flags & INSTANCE_DATA_FLAG_MULTIMESH) && mesh_storage->_multimesh_uses_motion_vectors_offsets(inst->data->base);
 				bool is_dynamic = transform_changed || has_mesh_instance || uses_particles || is_multimesh_with_motion;
+				bool force_motion = p_using_motion_pass; // For DLSS/FSR2 : Write MVs for ALL Opaque Surfaces when a Temporal Upscaler is Active
 				if (p_pass_mode == PASS_MODE_COLOR && p_using_motion_pass) {
-					uses_motion = is_dynamic;
+					uses_motion = is_dynamic || force_motion;
 				} else if (is_dynamic) {
 					flags |= INSTANCE_DATA_FLAGS_DYNAMIC;
 				}
@@ -1907,16 +1923,24 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 	bool using_debug_mvs = get_debug_draw_mode() == RSE::VIEWPORT_DEBUG_DRAW_MOTION_VECTORS;
 	bool using_taa = rb->get_use_taa();
 
-	enum {
+    enum {
 		SCALE_NONE,
 		SCALE_FSR2,
 		SCALE_MFX,
+#ifdef DLSS_FEATURE_ENABLED
+		SCALE_DLSS,
+#endif
 	} scale_type = SCALE_NONE;
 
 	switch (rb->get_scaling_3d_mode()) {
 		case RSE::VIEWPORT_SCALING_3D_MODE_FSR2:
 			scale_type = SCALE_FSR2;
 			break;
+#ifdef DLSS_FEATURE_ENABLED
+		case RSE::VIEWPORT_SCALING_3D_MODE_DLSS:
+			scale_type = SCALE_DLSS;
+			break;
+#endif
 		case RSE::VIEWPORT_SCALING_3D_MODE_METALFX_TEMPORAL:
 #ifdef METAL_MFXTEMPORAL_ENABLED
 			scale_type = SCALE_MFX;
@@ -2697,6 +2721,63 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 				params.reset = reset;
 
 				mfx_temporal_effect->process(rb_data->get_mfx_temporal_context(), params);
+			}
+
+			RD::get_singleton()->draw_command_end_label();
+#endif
+		} else if (scale_type == SCALE_DLSS) {
+#ifdef DLSS_FEATURE_ENABLED
+			rb_data->ensure_dlss(dlss_effect);
+
+			RID exposure;
+			if (RSG::camera_attributes->camera_attributes_uses_auto_exposure(p_render_data->camera_attributes)) {
+				exposure = luminance->get_current_luminance_buffer(rb);
+			}
+
+			RD::get_singleton()->draw_command_begin_label("DLSS");
+			RENDER_TIMESTAMP("DLSS");
+
+			for (uint32_t v = 0; v < rb->get_view_count(); v++) {
+				real_t fov = p_render_data->scene_data->cam_projection.get_fov();
+				real_t aspect = p_render_data->scene_data->cam_projection.get_aspect();
+				real_t fovy = p_render_data->scene_data->cam_projection.get_fovy(fov, 1.0 / aspect);
+				Vector2 jitter = p_render_data->scene_data->taa_jitter * Vector2(rb->get_internal_size()) * 0.5f;
+
+				RendererRD::DLSSContext::Parameters params;
+				params.context = rb_data->get_dlss_context();
+				params.internal_size = rb->get_internal_size();
+				params.color = rb->get_internal_texture(v);
+				params.depth = rb->get_depth_texture(v);
+				params.velocity = rb->get_velocity_buffer(false, v);
+				params.output = rb->get_upscaled_texture(v);
+				params.z_near = p_render_data->scene_data->z_near;
+				params.z_far = p_render_data->scene_data->z_far;
+				params.fovy = fovy;
+				params.jitter = jitter;
+				params.delta_time = float(time_step);
+				params.reset_accumulation = false;
+				params.reverse_depth = true;
+
+				params.dlss_quality = rb->get_dlss_quality();
+				params.dlss_preset = rb->get_dlss_preset();
+				params.dlss_sharpness = rb->get_dlss_sharpness();
+				params.dlss_hdr = rb->get_dlss_hdr();
+				params.dlss_auto_exposure = rb->get_dlss_auto_exposure();
+				params.dlss_alpha_upscaling = rb->get_dlss_alpha_upscaling();
+				params.dlss_depth_inverted = rb->get_dlss_depth_inverted();
+				params.dlss_mv_low_res = rb->get_dlss_mv_low_res();
+
+				Projection correction;
+				correction.set_depth_correction(true, true, false);
+				const Projection &prev_proj = p_render_data->scene_data->prev_cam_projection;
+				const Projection &cur_proj = p_render_data->scene_data->cam_projection;
+				const Transform3D &prev_transform = p_render_data->scene_data->prev_cam_transform;
+				const Transform3D &cur_transform = p_render_data->scene_data->cam_transform;
+				params.reprojection = (correction * prev_proj) * prev_transform.affine_inverse() * cur_transform * (correction * cur_proj).inverse();
+				params.cam_projection = cur_proj;
+				params.cam_transform = cur_transform;
+
+				dlss_effect->upscale(params);
 			}
 
 			RD::get_singleton()->draw_command_end_label();
@@ -5468,6 +5549,9 @@ RenderForwardClustered::RenderForwardClustered() {
 
 	taa = memnew(RendererRD::TAA);
 	fsr2_effect = memnew(RendererRD::FSR2Effect);
+#ifdef DLSS_FEATURE_ENABLED
+	dlss_effect = memnew(RendererRD::DLSSEffect);
+#endif
 	ss_effects = memnew(RendererRD::SSEffects);
 #ifdef METAL_MFXTEMPORAL_ENABLED
 	motion_vectors_store = memnew(RendererRD::MotionVectorsStore);
@@ -5490,6 +5574,13 @@ RenderForwardClustered::~RenderForwardClustered() {
 		memdelete(fsr2_effect);
 		fsr2_effect = nullptr;
 	}
+
+#ifdef DLSS_FEATURE_ENABLED
+	if (dlss_effect) {
+		memdelete(dlss_effect);
+		dlss_effect = nullptr;
+	}
+#endif
 
 #ifdef METAL_MFXTEMPORAL_ENABLED
 	if (mfx_temporal_effect) {

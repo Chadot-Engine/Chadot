@@ -331,6 +331,17 @@ private:
 	float mesh_lod_threshold = 1.0;
 	bool use_occlusion_culling = false;
 
+#ifdef DLSS_FEATURE_ENABLED
+	int dlss_quality = 1;
+	int dlss_preset = 0;
+	float dlss_sharpness = 0.0f;
+	bool dlss_hdr = true;
+	bool dlss_auto_exposure = true;
+	bool dlss_alpha_upscaling = false;
+	bool dlss_depth_inverted = true;
+	bool dlss_mv_low_res = true;
+#endif
+
 	Ref<ViewportTexture> default_texture;
 	HashSet<ViewportTexture *> viewport_textures;
 
@@ -611,6 +622,32 @@ public:
 
 	void set_fsr_sharpness(float p_fsr_sharpness);
 	float get_fsr_sharpness() const;
+
+#ifdef DLSS_FEATURE_ENABLED
+	void set_dlss_quality(int p_quality);
+	int get_dlss_quality() const;
+
+	void set_dlss_preset(int p_preset);
+	int get_dlss_preset() const;
+
+	void set_dlss_sharpness(float p_sharpness);
+	float get_dlss_sharpness() const;
+
+	void set_dlss_hdr(bool p_enabled);
+	bool get_dlss_hdr() const;
+
+	void set_dlss_auto_exposure(bool p_enabled);
+	bool get_dlss_auto_exposure() const;
+
+	void set_dlss_alpha_upscaling(bool p_enabled);
+	bool get_dlss_alpha_upscaling() const;
+
+	void set_dlss_depth_inverted(bool p_enabled);
+	bool get_dlss_depth_inverted() const;
+
+	void set_dlss_mv_low_res(bool p_enabled);
+	bool get_dlss_mv_low_res() const;
+#endif
 
 	void set_texture_mipmap_bias(float p_texture_mipmap_bias);
 	float get_texture_mipmap_bias() const;

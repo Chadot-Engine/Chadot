@@ -332,12 +332,16 @@ EditorPropertyNameProcessor::EditorPropertyNameProcessor() {
 	capitalize_string_remaps["xy"] = "XY";
 	capitalize_string_remaps["xz"] = "XZ";
 	capitalize_string_remaps["yz"] = "YZ";
-	capitalize_string_remaps["tm"] = "™";
+	capitalize_string_remaps["tm"] = String::utf8("™");
 
 #ifdef MODULE_HM_MATERIALS_ENABLED
 	capitalize_string_remaps["rtb"] = "RTB™";
 	capitalize_string_remaps["lbf"] = "LBF™";
 	capitalize_string_remaps["tea"] = "TEA™";
+#endif
+
+#ifdef DLSS_FEATURE_ENABLED
+	capitalize_string_remaps["dlss"] = "DLSS";
 #endif
 
 	// Articles, conjunctions, prepositions.

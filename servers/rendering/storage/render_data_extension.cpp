@@ -51,6 +51,40 @@ void RenderSceneBuffersExtension::set_fsr_sharpness(float p_fsr_sharpness) {
 	GDVIRTUAL_CALL(_set_fsr_sharpness, p_fsr_sharpness);
 }
 
+#ifdef DLSS_FEATURE_ENABLED
+void RenderSceneBuffersExtension::set_dlss_quality(int p_quality) {
+	GDVIRTUAL_CALL(_set_dlss_quality, p_quality);
+}
+
+void RenderSceneBuffersExtension::set_dlss_preset(int p_preset) {
+	GDVIRTUAL_CALL(_set_dlss_preset, p_preset);
+}
+
+void RenderSceneBuffersExtension::set_dlss_sharpness(float p_sharpness) {
+	GDVIRTUAL_CALL(_set_dlss_sharpness, p_sharpness);
+}
+
+void RenderSceneBuffersExtension::set_dlss_hdr(bool p_enabled) {
+	GDVIRTUAL_CALL(_set_dlss_hdr, p_enabled);
+}
+
+void RenderSceneBuffersExtension::set_dlss_auto_exposure(bool p_enabled) {
+	GDVIRTUAL_CALL(_set_dlss_auto_exposure, p_enabled);
+}
+
+void RenderSceneBuffersExtension::set_dlss_alpha_upscaling(bool p_enabled) {
+	GDVIRTUAL_CALL(_set_dlss_alpha_upscaling, p_enabled);
+}
+
+void RenderSceneBuffersExtension::set_dlss_depth_inverted(bool p_enabled) {
+	GDVIRTUAL_CALL(_set_dlss_depth_inverted, p_enabled);
+}
+
+void RenderSceneBuffersExtension::set_dlss_mv_low_res(bool p_enabled) {
+	GDVIRTUAL_CALL(_set_dlss_mv_low_res, p_enabled);
+}
+#endif
+
 void RenderSceneBuffersExtension::set_texture_mipmap_bias(float p_texture_mipmap_bias) {
 	GDVIRTUAL_CALL(_set_texture_mipmap_bias, p_texture_mipmap_bias);
 }

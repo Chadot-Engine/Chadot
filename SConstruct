@@ -1160,6 +1160,11 @@ for name, path in modules_detected.items():
     sys.modules.pop("config")
 
 env.module_list = modules_enabled
+
+# Check if DLSS Module Exists, Then Add Flag as Global defintion
+# This is to avoid including "modules/modules_enabled.gen.h" everywhere :)
+if "dlss" in env.module_list: env.Append(CPPDEFINES=["DLSS_FEATURE_ENABLED"])
+
 methods.sort_module_list(env)
 
 if env.editor_build:

@@ -84,6 +84,16 @@ private:
 	Size2i internal_size = Size2i(0, 0);
 	RSE::ViewportScaling3DMode scaling_3d_mode = RSE::VIEWPORT_SCALING_3D_MODE_OFF;
 	float fsr_sharpness = 0.2f;
+#ifdef DLSS_FEATURE_ENABLED
+	int dlss_quality = 1;
+	int dlss_preset = 0;
+	float dlss_sharpness = 0.0f;
+	bool dlss_hdr = true;
+	bool dlss_auto_exposure = true;
+	bool dlss_alpha_upscaling = false;
+	bool dlss_depth_inverted = true;
+	bool dlss_mv_low_res = true;
+#endif
 	float texture_mipmap_bias = 0.0f;
 	RSE::ViewportAnisotropicFiltering anisotropic_filtering_level = RSE::VIEWPORT_ANISOTROPY_4X;
 
@@ -204,6 +214,16 @@ public:
 	virtual void configure(const RenderSceneBuffersConfiguration *p_config) override;
 	void configure_for_reflections(const Size2i p_reflection_size);
 	virtual void set_fsr_sharpness(float p_fsr_sharpness) override;
+#ifdef DLSS_FEATURE_ENABLED
+	virtual void set_dlss_quality(int p_quality) override;
+	virtual void set_dlss_preset(int p_preset) override;
+	virtual void set_dlss_sharpness(float p_sharpness) override;
+	virtual void set_dlss_hdr(bool p_enabled) override;
+	virtual void set_dlss_auto_exposure(bool p_enabled) override;
+	virtual void set_dlss_alpha_upscaling(bool p_enabled) override;
+	virtual void set_dlss_depth_inverted(bool p_enabled) override;
+	virtual void set_dlss_mv_low_res(bool p_enabled) override;
+#endif
 	virtual void set_texture_mipmap_bias(float p_texture_mipmap_bias) override;
 	virtual void set_anisotropic_filtering_level(RSE::ViewportAnisotropicFiltering p_anisotropic_filtering_level) override;
 	virtual void set_use_debanding(bool p_use_debanding) override;
@@ -243,6 +263,16 @@ public:
 	_FORCE_INLINE_ Size2i get_target_size() const { return target_size; }
 	_FORCE_INLINE_ RSE::ViewportScaling3DMode get_scaling_3d_mode() const { return scaling_3d_mode; }
 	_FORCE_INLINE_ float get_fsr_sharpness() const { return fsr_sharpness; }
+#ifdef DLSS_FEATURE_ENABLED
+	_FORCE_INLINE_ int get_dlss_quality() const { return dlss_quality; }
+	_FORCE_INLINE_ int get_dlss_preset() const { return dlss_preset; }
+	_FORCE_INLINE_ float get_dlss_sharpness() const { return dlss_sharpness; }
+	_FORCE_INLINE_ bool get_dlss_hdr() const { return dlss_hdr; }
+	_FORCE_INLINE_ bool get_dlss_auto_exposure() const { return dlss_auto_exposure; }
+	_FORCE_INLINE_ bool get_dlss_alpha_upscaling() const { return dlss_alpha_upscaling; }
+	_FORCE_INLINE_ bool get_dlss_depth_inverted() const { return dlss_depth_inverted; }
+	_FORCE_INLINE_ bool get_dlss_mv_low_res() const { return dlss_mv_low_res; }
+#endif
 	_FORCE_INLINE_ RSE::ViewportMSAA get_msaa_3d() const { return msaa_3d; }
 	_FORCE_INLINE_ RD::TextureSamples get_texture_samples() const { return texture_samples; }
 	_FORCE_INLINE_ RSE::ViewportScreenSpaceAA get_screen_space_aa() const { return screen_space_aa; }

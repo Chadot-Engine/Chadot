@@ -45,6 +45,10 @@
 #include "servers/rendering/rendering_server_globals.h"
 #include "servers/rendering/storage/texture_storage.h"
 
+#ifdef DLSS_FEATURE_ENABLED
+#include "modules/dlss/dlss_sr.h"
+#endif
+
 #ifndef XR_DISABLED
 #include "servers/xr/xr_interface.h"
 #include "servers/xr/xr_server.h"
@@ -186,6 +190,17 @@ void RendererViewport::_configure_3d_render_buffers(Viewport *p_viewport) {
 				WARN_PRINT_ONCE("MetalFX spatial upscaling is not supported by the current renderer or hardware. Falling back to FSR scaling.");
 			}
 
+#ifdef DLSS_FEATURE_ENABLED
+			if (scaling_3d_mode == RSE::VIEWPORT_SCALING_3D_MODE_DLSS) {
+				bool ok = RD::get_singleton() && RD::get_singleton()->get_device_api_name().to_lower() == "d3d12" && RendererRD::DLSSLoader::get().is_available();
+				if (!ok) {
+					scaling_3d_mode = RSE::VIEWPORT_SCALING_3D_MODE_FSR2;
+					scaling_type = RSE::scaling_3d_mode_type(scaling_3d_mode);
+					WARN_PRINT_ONCE("DLSS Upscaler Unavailable (Needs D3D12 + nvngx_dlss.dll). Falling Back to FSR 2.");
+				}
+			}
+#endif
+
 			// If MetalFX Temporal upscaling is supported, verify limits.
 			if (scaling_3d_mode == RSE::VIEWPORT_SCALING_3D_MODE_METALFX_TEMPORAL) {
 				double min_scale = (double)RD::get_singleton()->limit_get(RD::LIMIT_METALFX_TEMPORAL_SCALER_MIN_SCALE) / 1000'000.0;
@@ -253,6 +268,9 @@ void RendererViewport::_configure_3d_render_buffers(Viewport *p_viewport) {
 				case RSE::VIEWPORT_SCALING_3D_MODE_METALFX_TEMPORAL:
 				case RSE::VIEWPORT_SCALING_3D_MODE_FSR:
 				case RSE::VIEWPORT_SCALING_3D_MODE_FSR2:
+#ifdef DLSS_FEATURE_ENABLED
+				case RSE::VIEWPORT_SCALING_3D_MODE_DLSS:
+#endif
 					target_width = p_viewport->size.width;
 					target_height = p_viewport->size.height;
 					render_width = MAX(target_width * scaling_3d_scale, 1.0); // target_width / (target_width * scaling)
@@ -302,6 +320,16 @@ void RendererViewport::_configure_3d_render_buffers(Viewport *p_viewport) {
 			rb_config.set_msaa_3d(msaa_3d);
 			rb_config.set_screen_space_aa(p_viewport->screen_space_aa);
 			rb_config.set_fsr_sharpness(p_viewport->fsr_sharpness);
+#ifdef DLSS_FEATURE_ENABLED
+			rb_config.set_dlss_quality(p_viewport->dlss_quality);
+			rb_config.set_dlss_preset(p_viewport->dlss_preset);
+			rb_config.set_dlss_sharpness(p_viewport->dlss_sharpness);
+			rb_config.set_dlss_hdr(p_viewport->dlss_hdr);
+			rb_config.set_dlss_auto_exposure(p_viewport->dlss_auto_exposure);
+			rb_config.set_dlss_alpha_upscaling(p_viewport->dlss_alpha_upscaling);
+			rb_config.set_dlss_depth_inverted(p_viewport->dlss_depth_inverted);
+			rb_config.set_dlss_mv_low_res(p_viewport->dlss_mv_low_res);
+#endif
 			rb_config.set_texture_mipmap_bias(texture_mipmap_bias);
 			rb_config.set_anisotropic_filtering_level(p_viewport->anisotropic_filtering_level);
 			rb_config.set_use_taa(use_taa);
@@ -1037,6 +1065,12 @@ void RendererViewport::viewport_set_scaling_3d_mode(RID p_viewport, RSE::Viewpor
 			WARN_PRINT_ONCE_ED("FSR2 3D scaling is only available when using the Forward+ renderer.");
 			return;
 		}
+#ifdef DLSS_FEATURE_ENABLED
+		if (p_mode == RSE::VIEWPORT_SCALING_3D_MODE_DLSS) {
+			WARN_PRINT_ONCE_ED("DLSS 3D scaling is only available when using the Forward+ renderer.");
+			return;
+		}
+#endif
 		if (p_mode == RSE::VIEWPORT_SCALING_3D_MODE_METALFX_TEMPORAL) {
 			WARN_PRINT_ONCE_ED("MetalFX Temporal 3D scaling is only available when using the Forward+ renderer.");
 			return;
@@ -1069,6 +1103,72 @@ void RendererViewport::viewport_set_fsr_sharpness(RID p_viewport, float p_sharpn
 	viewport->fsr_sharpness = p_sharpness;
 	_configure_3d_render_buffers(viewport);
 }
+
+#ifdef DLSS_FEATURE_ENABLED
+void RendererViewport::viewport_set_dlss_quality(RID p_viewport, int p_quality) {
+	Viewport *viewport = viewport_owner.get_or_null(p_viewport);
+	ERR_FAIL_NULL(viewport);
+
+	viewport->dlss_quality = p_quality;
+	_configure_3d_render_buffers(viewport);
+}
+
+void RendererViewport::viewport_set_dlss_preset(RID p_viewport, int p_preset) {
+	Viewport *viewport = viewport_owner.get_or_null(p_viewport);
+	ERR_FAIL_NULL(viewport);
+
+	viewport->dlss_preset = p_preset;
+	_configure_3d_render_buffers(viewport);
+}
+
+void RendererViewport::viewport_set_dlss_sharpness(RID p_viewport, float p_sharpness) {
+	Viewport *viewport = viewport_owner.get_or_null(p_viewport);
+	ERR_FAIL_NULL(viewport);
+
+	viewport->dlss_sharpness = p_sharpness;
+	_configure_3d_render_buffers(viewport);
+}
+
+void RendererViewport::viewport_set_dlss_hdr(RID p_viewport, bool p_enabled) {
+	Viewport *viewport = viewport_owner.get_or_null(p_viewport);
+	ERR_FAIL_NULL(viewport);
+
+	viewport->dlss_hdr = p_enabled;
+	_configure_3d_render_buffers(viewport);
+}
+
+void RendererViewport::viewport_set_dlss_auto_exposure(RID p_viewport, bool p_enabled) {
+	Viewport *viewport = viewport_owner.get_or_null(p_viewport);
+	ERR_FAIL_NULL(viewport);
+
+	viewport->dlss_auto_exposure = p_enabled;
+	_configure_3d_render_buffers(viewport);
+}
+
+void RendererViewport::viewport_set_dlss_alpha_upscaling(RID p_viewport, bool p_enabled) {
+	Viewport *viewport = viewport_owner.get_or_null(p_viewport);
+	ERR_FAIL_NULL(viewport);
+
+	viewport->dlss_alpha_upscaling = p_enabled;
+	_configure_3d_render_buffers(viewport);
+}
+
+void RendererViewport::viewport_set_dlss_depth_inverted(RID p_viewport, bool p_enabled) {
+	Viewport *viewport = viewport_owner.get_or_null(p_viewport);
+	ERR_FAIL_NULL(viewport);
+
+	viewport->dlss_depth_inverted = p_enabled;
+	_configure_3d_render_buffers(viewport);
+}
+
+void RendererViewport::viewport_set_dlss_mv_low_res(RID p_viewport, bool p_enabled) {
+	Viewport *viewport = viewport_owner.get_or_null(p_viewport);
+	ERR_FAIL_NULL(viewport);
+
+	viewport->dlss_mv_low_res = p_enabled;
+	_configure_3d_render_buffers(viewport);
+}
+#endif
 
 void RendererViewport::viewport_set_texture_mipmap_bias(RID p_viewport, float p_mipmap_bias) {
 	Viewport *viewport = viewport_owner.get_or_null(p_viewport);

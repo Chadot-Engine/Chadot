@@ -75,6 +75,16 @@ void RenderSceneBuffersRD::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_target_size"), &RenderSceneBuffersRD::get_target_size);
 	ClassDB::bind_method(D_METHOD("get_scaling_3d_mode"), &RenderSceneBuffersRD::get_scaling_3d_mode);
 	ClassDB::bind_method(D_METHOD("get_fsr_sharpness"), &RenderSceneBuffersRD::get_fsr_sharpness);
+#ifdef DLSS_FEATURE_ENABLED
+	ClassDB::bind_method(D_METHOD("get_dlss_quality"), &RenderSceneBuffersRD::get_dlss_quality);
+	ClassDB::bind_method(D_METHOD("get_dlss_preset"), &RenderSceneBuffersRD::get_dlss_preset);
+	ClassDB::bind_method(D_METHOD("get_dlss_sharpness"), &RenderSceneBuffersRD::get_dlss_sharpness);
+	ClassDB::bind_method(D_METHOD("get_dlss_hdr"), &RenderSceneBuffersRD::get_dlss_hdr);
+	ClassDB::bind_method(D_METHOD("get_dlss_auto_exposure"), &RenderSceneBuffersRD::get_dlss_auto_exposure);
+	ClassDB::bind_method(D_METHOD("get_dlss_alpha_upscaling"), &RenderSceneBuffersRD::get_dlss_alpha_upscaling);
+	ClassDB::bind_method(D_METHOD("get_dlss_depth_inverted"), &RenderSceneBuffersRD::get_dlss_depth_inverted);
+	ClassDB::bind_method(D_METHOD("get_dlss_mv_low_res"), &RenderSceneBuffersRD::get_dlss_mv_low_res);
+#endif
 	ClassDB::bind_method(D_METHOD("get_msaa_3d"), &RenderSceneBuffersRD::get_msaa_3d);
 	ClassDB::bind_method(D_METHOD("get_texture_samples"), &RenderSceneBuffersRD::get_texture_samples);
 	ClassDB::bind_method(D_METHOD("get_screen_space_aa"), &RenderSceneBuffersRD::get_screen_space_aa);
@@ -167,6 +177,16 @@ void RenderSceneBuffersRD::configure(const RenderSceneBuffersConfiguration *p_co
 	screen_space_aa = p_config->get_screen_space_aa();
 
 	fsr_sharpness = p_config->get_fsr_sharpness();
+#ifdef DLSS_FEATURE_ENABLED
+	dlss_quality = p_config->get_dlss_quality();
+	dlss_preset = p_config->get_dlss_preset();
+	dlss_sharpness = p_config->get_dlss_sharpness();
+	dlss_hdr = p_config->get_dlss_hdr();
+	dlss_auto_exposure = p_config->get_dlss_auto_exposure();
+	dlss_alpha_upscaling = p_config->get_dlss_alpha_upscaling();
+	dlss_depth_inverted = p_config->get_dlss_depth_inverted();
+	dlss_mv_low_res = p_config->get_dlss_mv_low_res();
+#endif
 	texture_mipmap_bias = p_config->get_texture_mipmap_bias();
 	anisotropic_filtering_level = p_config->get_anisotropic_filtering_level();
 	use_taa = p_config->get_use_taa();
@@ -221,6 +241,16 @@ void RenderSceneBuffersRD::configure_for_reflections(const Size2i p_reflection_s
 	render_target = RID();
 	scaling_3d_mode = RSE::VIEWPORT_SCALING_3D_MODE_OFF;
 	fsr_sharpness = 0.0;
+#ifdef DLSS_FEATURE_ENABLED
+	dlss_quality = 1;
+	dlss_preset = 0;
+	dlss_sharpness = 0.0f;
+	dlss_hdr = true;
+	dlss_auto_exposure = true;
+	dlss_alpha_upscaling = false;
+	dlss_depth_inverted = true;
+	dlss_mv_low_res = true;
+#endif
 	msaa_3d = RSE::VIEWPORT_MSAA_DISABLED;
 	screen_space_aa = RSE::VIEWPORT_SCREEN_SPACE_AA_DISABLED;
 	use_taa = false;
@@ -239,6 +269,40 @@ void RenderSceneBuffersRD::configure_for_reflections(const Size2i p_reflection_s
 void RenderSceneBuffersRD::set_fsr_sharpness(float p_fsr_sharpness) {
 	fsr_sharpness = p_fsr_sharpness;
 }
+
+#ifdef DLSS_FEATURE_ENABLED
+void RenderSceneBuffersRD::set_dlss_quality(int p_quality) {
+	dlss_quality = p_quality;
+}
+
+void RenderSceneBuffersRD::set_dlss_preset(int p_preset) {
+	dlss_preset = p_preset;
+}
+
+void RenderSceneBuffersRD::set_dlss_sharpness(float p_sharpness) {
+	dlss_sharpness = p_sharpness;
+}
+
+void RenderSceneBuffersRD::set_dlss_hdr(bool p_enabled) {
+	dlss_hdr = p_enabled;
+}
+
+void RenderSceneBuffersRD::set_dlss_auto_exposure(bool p_enabled) {
+	dlss_auto_exposure = p_enabled;
+}
+
+void RenderSceneBuffersRD::set_dlss_alpha_upscaling(bool p_enabled) {
+	dlss_alpha_upscaling = p_enabled;
+}
+
+void RenderSceneBuffersRD::set_dlss_depth_inverted(bool p_enabled) {
+	dlss_depth_inverted = p_enabled;
+}
+
+void RenderSceneBuffersRD::set_dlss_mv_low_res(bool p_enabled) {
+	dlss_mv_low_res = p_enabled;
+}
+#endif
 
 void RenderSceneBuffersRD::set_texture_mipmap_bias(float p_texture_mipmap_bias) {
 	texture_mipmap_bias = p_texture_mipmap_bias;

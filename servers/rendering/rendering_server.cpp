@@ -2880,6 +2880,16 @@ void RenderingServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("viewport_set_scaling_3d_mode", "viewport", "scaling_3d_mode"), &RenderingServer::viewport_set_scaling_3d_mode);
 	ClassDB::bind_method(D_METHOD("viewport_set_scaling_3d_scale", "viewport", "scale"), &RenderingServer::viewport_set_scaling_3d_scale);
 	ClassDB::bind_method(D_METHOD("viewport_set_fsr_sharpness", "viewport", "sharpness"), &RenderingServer::viewport_set_fsr_sharpness);
+#ifdef DLSS_FEATURE_ENABLED
+	ClassDB::bind_method(D_METHOD("viewport_set_dlss_quality", "viewport", "quality"), &RenderingServer::viewport_set_dlss_quality);
+	ClassDB::bind_method(D_METHOD("viewport_set_dlss_preset", "viewport", "preset"), &RenderingServer::viewport_set_dlss_preset);
+	ClassDB::bind_method(D_METHOD("viewport_set_dlss_sharpness", "viewport", "sharpness"), &RenderingServer::viewport_set_dlss_sharpness);
+	ClassDB::bind_method(D_METHOD("viewport_set_dlss_hdr", "viewport", "enabled"), &RenderingServer::viewport_set_dlss_hdr);
+	ClassDB::bind_method(D_METHOD("viewport_set_dlss_auto_exposure", "viewport", "enabled"), &RenderingServer::viewport_set_dlss_auto_exposure);
+	ClassDB::bind_method(D_METHOD("viewport_set_dlss_alpha_upscaling", "viewport", "enabled"), &RenderingServer::viewport_set_dlss_alpha_upscaling);
+	ClassDB::bind_method(D_METHOD("viewport_set_dlss_depth_inverted", "viewport", "enabled"), &RenderingServer::viewport_set_dlss_depth_inverted);
+	ClassDB::bind_method(D_METHOD("viewport_set_dlss_mv_low_res", "viewport", "enabled"), &RenderingServer::viewport_set_dlss_mv_low_res);
+#endif
 	ClassDB::bind_method(D_METHOD("viewport_set_texture_mipmap_bias", "viewport", "mipmap_bias"), &RenderingServer::viewport_set_texture_mipmap_bias);
 	ClassDB::bind_method(D_METHOD("viewport_set_anisotropic_filtering_level", "viewport", "anisotropic_filtering_level"), &RenderingServer::viewport_set_anisotropic_filtering_level);
 	ClassDB::bind_method(D_METHOD("viewport_set_update_mode", "viewport", "update_mode"), &RenderingServer::viewport_set_update_mode);
@@ -2935,6 +2945,9 @@ void RenderingServer::_bind_methods() {
 	BIND_ENUM_CONSTANT(RSE::VIEWPORT_SCALING_3D_MODE_BILINEAR);
 	BIND_ENUM_CONSTANT(RSE::VIEWPORT_SCALING_3D_MODE_FSR);
 	BIND_ENUM_CONSTANT(RSE::VIEWPORT_SCALING_3D_MODE_FSR2);
+#ifdef DLSS_FEATURE_ENABLED
+	BIND_ENUM_CONSTANT(RSE::VIEWPORT_SCALING_3D_MODE_DLSS);
+#endif
 	BIND_ENUM_CONSTANT(RSE::VIEWPORT_SCALING_3D_MODE_METALFX_SPATIAL);
 	BIND_ENUM_CONSTANT(RSE::VIEWPORT_SCALING_3D_MODE_METALFX_TEMPORAL);
 	BIND_ENUM_CONSTANT(RSE::VIEWPORT_SCALING_3D_MODE_NEAREST);
@@ -3779,16 +3792,18 @@ void RenderingServer::init() {
 	GLOBAL_DEF("rendering/anti_aliasing/quality/use_debanding", false);
 
 	{
-		String mode_hints;
-		String mode_hints_metal;
-		{
-			Vector<String> mode_hints_arr = { "Nearest (Fastest):5", "Bilinear (Fastest):0", "FSR 1.0 (Fast):1", "FSR 2.2 (Slow):2" };
-			mode_hints = String(",").join(mode_hints_arr);
+		Vector<String> mode_hints_arr = { "Nearest (Fastest):5", "Bilinear (Fastest):0", "FSR 1.0 (Fast):1", "FSR 2.2 (Slow):2" };
 
-			mode_hints_arr.push_back("MetalFX (Spatial - Fast):3");
-			mode_hints_arr.push_back("MetalFX (Temporal - Slow):4");
-			mode_hints_metal = String(",").join(mode_hints_arr);
-		}
+#ifdef DLSS_FEATURE_ENABLED
+		mode_hints_arr.push_back(String::utf8("NVIDIA™ DLSS 5:6"));
+#endif
+
+		String mode_hints = String(",").join(mode_hints_arr);
+
+		Vector<String> mode_hints_metal_arr = mode_hints_arr;
+		mode_hints_metal_arr.push_back("MetalFX (Spatial - Fast):3");
+		mode_hints_metal_arr.push_back("MetalFX (Temporal - Slow):4");
+		String mode_hints_metal = String(",").join(mode_hints_metal_arr);
 
 		GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/scaling_3d/mode", PROPERTY_HINT_ENUM, mode_hints), 0);
 		GLOBAL_DEF_NOVAL(PropertyInfo(Variant::INT, "rendering/scaling_3d/mode.ios", PROPERTY_HINT_ENUM, mode_hints_metal), 0);
@@ -3796,6 +3811,17 @@ void RenderingServer::init() {
 	}
 	GLOBAL_DEF(PropertyInfo(Variant::FLOAT, "rendering/scaling_3d/scale", PROPERTY_HINT_RANGE, "0.1,2.0,0.0001"), 1.0);
 	GLOBAL_DEF(PropertyInfo(Variant::FLOAT, "rendering/scaling_3d/fsr_sharpness", PROPERTY_HINT_RANGE, "0,2,0.01"), 0.2f);
+
+#ifdef DLSS_FEATURE_ENABLED
+	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/scaling_3d/dlss_quality", PROPERTY_HINT_ENUM, "DLAA:0,Quality:1,Balanced:2,Performance:3,UltraPerformance:4"), 1);
+	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/scaling_3d/dlss_preset", PROPERTY_HINT_ENUM, "Default:0,A:1,B:2,C:3,D:4,E:5,F:6,G:7,J:10,K:11,L:12,M:13,N:14,O:15"), 0);
+	GLOBAL_DEF(PropertyInfo(Variant::FLOAT, "rendering/scaling_3d/dlss_sharpness", PROPERTY_HINT_RANGE, "0,1,0.01"), 0.0f);
+	GLOBAL_DEF(PropertyInfo(Variant::BOOL, "rendering/scaling_3d/dlss_hdr", PROPERTY_HINT_NONE, ""), true);
+	GLOBAL_DEF(PropertyInfo(Variant::BOOL, "rendering/scaling_3d/dlss_auto_exposure", PROPERTY_HINT_NONE, ""), true);
+	GLOBAL_DEF(PropertyInfo(Variant::BOOL, "rendering/scaling_3d/dlss_alpha_upscaling", PROPERTY_HINT_NONE, ""), false);
+	GLOBAL_DEF(PropertyInfo(Variant::BOOL, "rendering/scaling_3d/dlss_depth_inverted", PROPERTY_HINT_NONE, ""), true);
+	GLOBAL_DEF(PropertyInfo(Variant::BOOL, "rendering/scaling_3d/dlss_mv_low_res", PROPERTY_HINT_NONE, ""), true);
+#endif
 
 	GLOBAL_DEF(PropertyInfo(Variant::FLOAT, "rendering/textures/default_filters/texture_mipmap_bias", PROPERTY_HINT_RANGE, "-2,2,0.001"), 0.0f);
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/textures/decals/filter", PROPERTY_HINT_ENUM, "Nearest (Fast),Linear (Fast),Nearest Mipmap (Fast),Linear Mipmap (Fast),Nearest Mipmap Anisotropic (Average),Linear Mipmap Anisotropic (Average)"), RSE::DECAL_FILTER_LINEAR_MIPMAPS);

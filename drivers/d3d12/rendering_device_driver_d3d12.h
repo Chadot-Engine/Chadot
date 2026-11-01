@@ -47,6 +47,12 @@
 
 class RenderingContextDriverD3D12;
 
+#ifdef DLSS_FEATURE_ENABLED
+namespace RendererRD {
+class DLSSEffect;
+}
+#endif
+
 namespace D3D12MA {
 class Allocation;
 class Allocator;
@@ -60,6 +66,10 @@ struct IDXGISwapChain3;
 // Design principles:
 // - D3D12 structs are zero-initialized and fields not requiring a non-zero value are omitted (except in cases where expresivity reasons apply).
 class RenderingDeviceDriverD3D12 : public RenderingDeviceDriver {
+#ifdef DLSS_FEATURE_ENABLED
+	friend class RendererRD::DLSSEffect;
+#endif
+
 	/*****************/
 	/**** GENERIC ****/
 	/*****************/

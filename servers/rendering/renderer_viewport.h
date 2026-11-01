@@ -58,6 +58,16 @@ public:
 		RSE::ViewportScaling3DMode scaling_3d_mode = RSE::VIEWPORT_SCALING_3D_MODE_BILINEAR;
 		float scaling_3d_scale = 1.0;
 		float fsr_sharpness = 0.2f;
+#ifdef DLSS_FEATURE_ENABLED
+		int dlss_quality = 1;
+		int dlss_preset = 0;
+		float dlss_sharpness = 0.0f;
+		bool dlss_hdr = true;
+		bool dlss_auto_exposure = true;
+		bool dlss_alpha_upscaling = false;
+		bool dlss_depth_inverted = true;
+		bool dlss_mv_low_res = true;
+#endif
 		float texture_mipmap_bias = 0.0f;
 		RSE::ViewportAnisotropicFiltering anisotropic_filtering_level = RSE::VIEWPORT_ANISOTROPY_4X;
 		bool fsr_enabled = false;
@@ -235,6 +245,16 @@ public:
 	void viewport_set_scaling_3d_mode(RID p_viewport, RSE::ViewportScaling3DMode p_mode);
 	void viewport_set_scaling_3d_scale(RID p_viewport, float p_scaling_3d_scale);
 	void viewport_set_fsr_sharpness(RID p_viewport, float p_sharpness);
+#ifdef DLSS_FEATURE_ENABLED
+	void viewport_set_dlss_quality(RID p_viewport, int p_quality);
+	void viewport_set_dlss_preset(RID p_viewport, int p_preset);
+	void viewport_set_dlss_sharpness(RID p_viewport, float p_sharpness);
+	void viewport_set_dlss_hdr(RID p_viewport, bool p_enabled);
+	void viewport_set_dlss_auto_exposure(RID p_viewport, bool p_enabled);
+	void viewport_set_dlss_alpha_upscaling(RID p_viewport, bool p_enabled);
+	void viewport_set_dlss_depth_inverted(RID p_viewport, bool p_enabled);
+	void viewport_set_dlss_mv_low_res(RID p_viewport, bool p_enabled);
+#endif
 	void viewport_set_texture_mipmap_bias(RID p_viewport, float p_mipmap_bias);
 	void viewport_set_anisotropic_filtering_level(RID p_viewport, RSE::ViewportAnisotropicFiltering p_anisotropic_filtering_level);
 

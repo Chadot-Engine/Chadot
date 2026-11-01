@@ -3192,6 +3192,25 @@ void Node3DEditorViewport::_project_settings_changed() {
 	const float fsr_sharpness = GLOBAL_GET("rendering/scaling_3d/fsr_sharpness");
 	viewport->set_fsr_sharpness(fsr_sharpness);
 
+#ifdef DLSS_FEATURE_ENABLED
+	const int dlss_quality = GLOBAL_GET("rendering/scaling_3d/dlss_quality");
+	viewport->set_dlss_quality(dlss_quality);
+	const int dlss_preset = GLOBAL_GET("rendering/scaling_3d/dlss_preset");
+	viewport->set_dlss_preset(dlss_preset);
+	const float dlss_sharpness = GLOBAL_GET("rendering/scaling_3d/dlss_sharpness");
+	viewport->set_dlss_sharpness(dlss_sharpness);
+	const bool dlss_hdr = GLOBAL_GET("rendering/scaling_3d/dlss_hdr");
+	viewport->set_dlss_hdr(dlss_hdr);
+	const bool dlss_auto_exposure = GLOBAL_GET("rendering/scaling_3d/dlss_auto_exposure");
+	viewport->set_dlss_auto_exposure(dlss_auto_exposure);
+	const bool dlss_alpha_upscaling = GLOBAL_GET("rendering/scaling_3d/dlss_alpha_upscaling");
+	viewport->set_dlss_alpha_upscaling(dlss_alpha_upscaling);
+	const bool dlss_depth_inverted = GLOBAL_GET("rendering/scaling_3d/dlss_depth_inverted");
+	viewport->set_dlss_depth_inverted(dlss_depth_inverted);
+	const bool dlss_mv_low_res = GLOBAL_GET("rendering/scaling_3d/dlss_mv_low_res");
+	viewport->set_dlss_mv_low_res(dlss_mv_low_res);
+#endif
+
 	const float texture_mipmap_bias = GLOBAL_GET("rendering/textures/default_filters/texture_mipmap_bias");
 	viewport->set_texture_mipmap_bias(texture_mipmap_bias);
 

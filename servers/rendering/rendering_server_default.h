@@ -764,6 +764,16 @@ public:
 	FUNC2(viewport_set_scaling_3d_mode, RID, RSE::ViewportScaling3DMode)
 	FUNC2(viewport_set_scaling_3d_scale, RID, float)
 	FUNC2(viewport_set_fsr_sharpness, RID, float)
+#ifdef DLSS_FEATURE_ENABLED
+	FUNC2(viewport_set_dlss_quality, RID, int)
+	FUNC2(viewport_set_dlss_preset, RID, int)
+	FUNC2(viewport_set_dlss_sharpness, RID, float)
+	FUNC2(viewport_set_dlss_hdr, RID, bool)
+	FUNC2(viewport_set_dlss_auto_exposure, RID, bool)
+	FUNC2(viewport_set_dlss_alpha_upscaling, RID, bool)
+	FUNC2(viewport_set_dlss_depth_inverted, RID, bool)
+	FUNC2(viewport_set_dlss_mv_low_res, RID, bool)
+#endif
 	FUNC2(viewport_set_texture_mipmap_bias, RID, float)
 	FUNC2(viewport_set_anisotropic_filtering_level, RID, RSE::ViewportAnisotropicFiltering)
 
