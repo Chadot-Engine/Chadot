@@ -3813,7 +3813,7 @@ void RenderingServer::init() {
 	GLOBAL_DEF(PropertyInfo(Variant::FLOAT, "rendering/scaling_3d/fsr_sharpness", PROPERTY_HINT_RANGE, "0,2,0.01"), 0.2f);
 
 #ifdef DLSS_FEATURE_ENABLED
-	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/scaling_3d/dlss_quality", PROPERTY_HINT_ENUM, "DLAA:0,Quality:1,Balanced:2,Performance:3,UltraPerformance:4"), 1);
+	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/scaling_3d/dlss_quality", PROPERTY_HINT_ENUM, "Performance:0,Balanced:1,Quality:2,UltraPerformance:3,UltraQuality:4,DLAA:5,Custom:6"), 2);
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/scaling_3d/dlss_preset", PROPERTY_HINT_ENUM, "Default:0,A:1,B:2,C:3,D:4,E:5,F:6,G:7,J:10,K:11,L:12,M:13,N:14,O:15"), 0);
 	GLOBAL_DEF(PropertyInfo(Variant::FLOAT, "rendering/scaling_3d/dlss_sharpness", PROPERTY_HINT_RANGE, "0,1,0.01"), 0.0f);
 	GLOBAL_DEF(PropertyInfo(Variant::BOOL, "rendering/scaling_3d/dlss_hdr", PROPERTY_HINT_NONE, ""), true);

@@ -226,12 +226,19 @@ void RendererViewport::_configure_3d_render_buffers(Viewport *p_viewport) {
 			bool scaling_3d_is_not_bilinear = scaling_3d_mode != RSE::VIEWPORT_SCALING_3D_MODE_OFF && scaling_3d_mode != RSE::VIEWPORT_SCALING_3D_MODE_BILINEAR;
 			bool use_taa = p_viewport->use_taa;
 
-			if (scaling_3d_is_not_bilinear && scaling_3d_scale >= (1.0 + EPSILON)) {
-				// FSR, MetalFX, and nearest-neighbor scaling are not designed for downsampling.
-				// Fall back to bilinear scaling.
-				WARN_PRINT_ONCE("FSR, MetalFX, and nearest-neighbor 3D resolution scaling are not designed for downsampling. Falling back to bilinear 3D resolution scaling.");
-				scaling_3d_mode = RSE::VIEWPORT_SCALING_3D_MODE_BILINEAR;
-				scaling_type = RSE::scaling_3d_mode_type(scaling_3d_mode);
+			{
+#ifdef DLSS_FEATURE_ENABLED
+				const bool skip_supersample_fallback = (scaling_3d_mode == RSE::VIEWPORT_SCALING_3D_MODE_DLSS);
+#else
+				const bool skip_supersample_fallback = false;
+#endif
+				if (!skip_supersample_fallback && scaling_3d_is_not_bilinear && scaling_3d_scale >= (1.0 + EPSILON)) {
+					// FSR, MetalFX, and nearest-neighbor scaling are not designed for downsampling.
+					// Fall back to bilinear scaling.
+					WARN_PRINT_ONCE("FSR, MetalFX, and nearest-neighbor 3D resolution scaling are not designed for downsampling. Falling back to bilinear 3D resolution scaling.");
+					scaling_3d_mode = RSE::VIEWPORT_SCALING_3D_MODE_BILINEAR;
+					scaling_type = RSE::scaling_3d_mode_type(scaling_3d_mode);
+				}
 			}
 
 			if (scaling_3d_is_not_bilinear && scaling_3d_mode != RSE::VIEWPORT_SCALING_3D_MODE_NEAREST && !upscaler_available) {
@@ -268,14 +275,29 @@ void RendererViewport::_configure_3d_render_buffers(Viewport *p_viewport) {
 				case RSE::VIEWPORT_SCALING_3D_MODE_METALFX_TEMPORAL:
 				case RSE::VIEWPORT_SCALING_3D_MODE_FSR:
 				case RSE::VIEWPORT_SCALING_3D_MODE_FSR2:
-#ifdef DLSS_FEATURE_ENABLED
-				case RSE::VIEWPORT_SCALING_3D_MODE_DLSS:
-#endif
 					target_width = p_viewport->size.width;
 					target_height = p_viewport->size.height;
 					render_width = MAX(target_width * scaling_3d_scale, 1.0); // target_width / (target_width * scaling)
 					render_height = MAX(target_height * scaling_3d_scale, 1.0);
 					break;
+#ifdef DLSS_FEATURE_ENABLED
+				case RSE::VIEWPORT_SCALING_3D_MODE_DLSS: {
+					target_width = p_viewport->size.width;
+					target_height = p_viewport->size.height;
+					if (p_viewport->dlss_quality == 6) {
+						// User Defined
+						float effective_scale = CLAMP(scaling_3d_scale, 0.33f, 1.0f);
+						render_width = MAX(target_width * effective_scale, 1.0f);
+						render_height = MAX(target_height * effective_scale, 1.0f);
+					} else {
+						// DLSS Decides The Size
+						unsigned int rw = 0, rh = 0;
+						RendererRD::DLSSLoader::get().query_optimal_settings(target_width, target_height, p_viewport->dlss_quality, rw, rh);
+						render_width = (int)rw;
+						render_height = (int)rh;
+					}
+				} break;
+#endif
 				case RSE::VIEWPORT_SCALING_3D_MODE_OFF:
 					target_width = p_viewport->size.width;
 					target_height = p_viewport->size.height;

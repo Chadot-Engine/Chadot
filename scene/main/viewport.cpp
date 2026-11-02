@@ -5147,7 +5147,7 @@ float Viewport::get_fsr_sharpness() const {
 #ifdef DLSS_FEATURE_ENABLED
 void Viewport::set_dlss_quality(int p_quality) {
 	ERR_MAIN_THREAD_GUARD;
-	p_quality = CLAMP(p_quality, 0, 4);
+	p_quality = CLAMP(p_quality, 0, 6);
 	if (dlss_quality == p_quality) {
 		return;
 	}
@@ -5584,7 +5584,7 @@ void Viewport::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "anisotropic_filtering_level", PROPERTY_HINT_ENUM, String::utf8("Disabled (Fastest),2× (Faster),4× (Fast),8× (Average),16x (Slow)")), "set_anisotropic_filtering_level", "get_anisotropic_filtering_level");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "fsr_sharpness", PROPERTY_HINT_RANGE, "0,2,0.01"), "set_fsr_sharpness", "get_fsr_sharpness");
 #ifdef DLSS_FEATURE_ENABLED
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "dlss_quality", PROPERTY_HINT_ENUM, "DLAA:0,Quality:1,Balanced:2,Performance:3,UltraPerformance:4"), "set_dlss_quality", "get_dlss_quality");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "dlss_quality", PROPERTY_HINT_ENUM, "Performance:0,Balanced:1,Quality:2,UltraPerformance:3,UltraQuality:4,DLAA:5,Custom:6"), "set_dlss_quality", "get_dlss_quality");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "dlss_preset", PROPERTY_HINT_ENUM, "Default:0,A:1,B:2,C:3,D:4,E:5,F:6,G:7,J:10,K:11,L:12,M:13,N:14,O:15"), "set_dlss_preset", "get_dlss_preset");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "dlss_sharpness", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_dlss_sharpness", "get_dlss_sharpness");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "dlss_hdr"), "set_dlss_hdr", "get_dlss_hdr");
