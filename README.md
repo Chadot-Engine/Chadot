@@ -17,13 +17,14 @@ It provides a fully customizable rendering pipeline with support for systems suc
 - NVIDIA™ DLSS Upscaler (Super Resolution) Native Integration
 - MeshInstanceEx3D (aka RayCompute3D) Integration
 - GameRecorder3D Integration for Cinematic/Replay
-- Full GBuffer Access in Post-Processing Shaders
+- Full G-Buffer Access in Post-Processing Shaders
 - Custom Lightmap Support with ReLight Integration
 - Native Lottie Vector Animation Support
 - Per-Viewport Global Material Override (Environment)
 - Six-Way Lighting Volumetric/Foliage Materials Integration
 - Voxel-Friendly Triangle-Based Lightmap Unwrapper/Packer
 - Custom Panorama Reflections for Reflection Probes
+- Ground-truth Geometry Masking (Real-Time Cryptomatte)
 
 ### Work in Progress
 - New API and SDK for engine internals

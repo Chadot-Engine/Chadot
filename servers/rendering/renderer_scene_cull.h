@@ -284,6 +284,7 @@ public:
 
 		uint32_t flags = 0;
 		uint32_t layer_mask = 0; //for fast layer-mask discard
+		uint32_t geometry_id = 0;
 		RID base_rid;
 		union {
 			uint64_t instance_data_rid;
@@ -461,6 +462,7 @@ public:
 		Instance *visibility_parent = nullptr;
 		HashSet<Instance *> visibility_dependencies;
 		uint32_t visibility_dependencies_depth = 0;
+		uint32_t geometry_id = 0;
 		float transparency = 0.0f;
 		Scenario *scenario = nullptr;
 		SelfList<Instance> scenario_item;
@@ -1033,6 +1035,7 @@ public:
 	virtual void instance_set_blend_shape_weight(RID p_instance, int p_shape, float p_weight);
 	virtual void instance_set_surface_override_material(RID p_instance, int p_surface, RID p_material);
 	virtual void instance_set_visible(RID p_instance, bool p_visible);
+	virtual void instance_geometry_set_geometry_id(RID p_instance, uint32_t p_geometry_id);
 	virtual void instance_geometry_set_transparency(RID p_instance, float p_transparency);
 
 	virtual void instance_teleport(RID p_instance);

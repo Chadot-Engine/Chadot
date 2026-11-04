@@ -66,6 +66,12 @@
 			The material override for the whole geometry.
 			If a material is assigned to this property, it will be used instead of any material set in any material slot of the mesh.
 		</member>
+		<member name="geometry_id" type="int" setter="set_geometry_id" getter="get_geometry_id" default="0">
+			A per-instance integer ID written to the Forward+ geometry ID buffer, used to identify individual objects for masking, selection or post-processing. [code]0[/code] means the instance is excluded from the buffer.
+			The buffer is only produced when a [CompositorEffect] requests it via [member CompositorEffect.needs_geometry_id], or when the viewport's debug draw mode is [constant RenderingServer.VIEWPORT_DEBUG_DRAW_GEOMETRY_ID].
+			[b]Note:[/b] The geometry ID buffer stores one integer per pixel. Transparent surfaces write their full ID regardless of alpha; overlapping transparents resolve to the front-most surface. Setting [member geometry_id] to [code]0[/code] makes the instance write [code]0[/code] (background) and mask any geometry behind it in the buffer.
+			[b]Note:[/b] Only supported when using the Forward+ rendering method. When using the Mobile or Compatibility rendering method, [member geometry_id] is ignored.
+		</member>
 		<member name="transparency" type="float" setter="set_transparency" getter="get_transparency" default="0.0" keywords="opacity">
 			The transparency applied to the whole geometry (as a multiplier of the materials' existing transparency). [code]0.0[/code] is fully opaque, while [code]1.0[/code] is fully transparent. Values greater than [code]0.0[/code] (exclusive) will force the geometry's materials to go through the transparent pipeline, which is slower to render and can exhibit rendering issues due to incorrect transparency sorting. However, unlike using a transparent material, setting [member transparency] to a value greater than [code]0.0[/code] (exclusive) will [i]not[/i] disable shadow rendering.
 			In spatial shaders, [code]1.0 - transparency[/code] is set as the default value of the [code]ALPHA[/code] built-in.

@@ -60,6 +60,7 @@ private:
 	bool needs_normal_roughness = false;
 	bool needs_albedo = false;
 	bool needs_separate_specular = false;
+	bool needs_geometry_id = false;
 
 protected:
 	static void _bind_methods();
@@ -95,6 +96,9 @@ public:
 
 	void set_needs_separate_specular(bool p_enabled);
 	bool get_needs_separate_specular() const;
+
+	void set_needs_geometry_id(bool p_enable);
+	bool get_needs_geometry_id() const;
 
 	CompositorEffect();
 	~CompositorEffect();

@@ -49,6 +49,7 @@
 #include "core/string/print_string.h"
 #include "core/string/translation_server.h"
 #include "core/version.h"
+#include "core/math/random_number_generator.h"
 #include "editor/animation/animation_player_editor_plugin.h"
 #include "editor/asset_library/asset_library_editor_plugin.h"
 #include "editor/audio/audio_stream_editor_plugin.h"
@@ -4207,6 +4208,44 @@ void EditorNode::_tool_menu_option(int p_idx) {
 		case TOOLS_BUILD_PROFILE_MANAGER: {
 			build_profile_manager->popup_centered_clamped(Size2(700, 800) * EDSCALE, 0.8);
 		} break;
+		case TOOLS_GENERATE_GEO_IDS: {
+			Node *root = EditorNode::get_singleton()->get_editor_data().get_edited_scene_root();
+			if (!root) {
+				EditorNode::get_singleton()->show_warning(TTR("No Scene is Currently Open."));
+			} else {
+				EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+				undo_redo->create_action(TTR("Assign Random Geometry IDs"));
+
+				Ref<RandomNumberGenerator> rng;
+				rng.instantiate();
+				rng->randomize();
+
+				List<Node *> stack;
+				stack.push_back(root);
+				int assigned = 0;
+
+				while (!stack.is_empty()) {
+					Node *node = stack.front()->get();
+					stack.pop_front();
+
+					GeometryInstance3D *geom = Object::cast_to<GeometryInstance3D>(node);
+					if (geom) {
+						uint32_t new_id = rng->randi();
+						undo_redo->add_do_property(geom, "geometry_id", new_id);
+						undo_redo->add_undo_property(geom, "geometry_id", geom->get_geometry_id());
+						assigned++;
+					}
+
+					for (int i = 0; i < node->get_child_count(); i++) {
+						stack.push_back(node->get_child(i));
+					}
+				}
+
+				rng.unref();
+				undo_redo->commit_action();
+				print_line(vformat("Assigned Random Geometry IDs to %d GeometryInstance3D Node(s).", assigned));
+			}
+		} break;
 		case TOOLS_PROJECT_UPGRADE: {
 			project_upgrade_tool->popup_dialog();
 		} break;
@@ -8246,6 +8285,7 @@ void EditorNode::_build_project_menu(bool p_dark_mode) {
 		tool_menu->connect("index_pressed", callable_mp(this, &EditorNode::_tool_menu_option));
 		tool_menu->add_shortcut(ED_GET_SHORTCUT("editor/orphan_resource_explorer"), TOOLS_ORPHAN_RESOURCES);
 		tool_menu->add_shortcut(ED_GET_SHORTCUT("editor/engine_compilation_configuration_editor"), TOOLS_BUILD_PROFILE_MANAGER);
+		tool_menu->add_shortcut(ED_GET_SHORTCUT("editor/generate_geometry_ids"), TOOLS_GENERATE_GEO_IDS);
 		tool_menu->add_shortcut(ED_GET_SHORTCUT("editor/upgrade_project"), TOOLS_PROJECT_UPGRADE);
 		tool_menu->add_shortcut(ED_GET_SHORTCUT("editor/clear_project_cache"), TOOLS_CLEAR_PROJECT_CACHE);
 	}
@@ -9189,6 +9229,7 @@ EditorNode::EditorNode() {
 
 	ED_SHORTCUT_AND_COMMAND("editor/orphan_resource_explorer", TTRC("Orphan Resource Explorer..."));
 	ED_SHORTCUT_AND_COMMAND("editor/engine_compilation_configuration_editor", TTRC("Engine Compilation Configuration Editor..."));
+	ED_SHORTCUT_AND_COMMAND("editor/generate_geometry_ids", TTRC("Generate Geometry IDs..."));
 	ED_SHORTCUT_AND_COMMAND("editor/upgrade_project", TTRC("Upgrade Project Files..."));
 	ED_SHORTCUT_AND_COMMAND("editor/clear_project_cache", TTRC("Clear Project Cache..."));
 

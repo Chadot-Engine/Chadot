@@ -3016,6 +3016,7 @@ void RenderingServer::_bind_methods() {
 	BIND_ENUM_CONSTANT(RSE::VIEWPORT_DEBUG_DRAW_LIGHTING);
 	BIND_ENUM_CONSTANT(RSE::VIEWPORT_DEBUG_DRAW_OVERDRAW);
 	BIND_ENUM_CONSTANT(RSE::VIEWPORT_DEBUG_DRAW_WIREFRAME);
+	BIND_ENUM_CONSTANT(RSE::VIEWPORT_DEBUG_DRAW_GEOMETRY_ID);
 	BIND_ENUM_CONSTANT(RSE::VIEWPORT_DEBUG_DRAW_NORMAL_BUFFER);
 	BIND_ENUM_CONSTANT(RSE::VIEWPORT_DEBUG_DRAW_VOXEL_GI_ALBEDO);
 	BIND_ENUM_CONSTANT(RSE::VIEWPORT_DEBUG_DRAW_VOXEL_GI_LIGHTING);
@@ -3074,6 +3075,7 @@ void RenderingServer::_bind_methods() {
 	BIND_ENUM_CONSTANT(RSE::COMPOSITOR_EFFECT_FLAG_NEEDS_MOTION_VECTORS);
 	BIND_ENUM_CONSTANT(RSE::COMPOSITOR_EFFECT_FLAG_NEEDS_ROUGHNESS);
 	BIND_ENUM_CONSTANT(RSE::COMPOSITOR_EFFECT_FLAG_NEEDS_SEPARATE_SPECULAR);
+	BIND_ENUM_CONSTANT(RSE::COMPOSITOR_EFFECT_FLAG_NEEDS_GEOMETRY_ID);
 
 	BIND_ENUM_CONSTANT(RSE::COMPOSITOR_EFFECT_CALLBACK_TYPE_PRE_OPAQUE);
 	BIND_ENUM_CONSTANT(RSE::COMPOSITOR_EFFECT_CALLBACK_TYPE_POST_OPAQUE);
@@ -3269,6 +3271,7 @@ void RenderingServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("instance_geometry_set_visibility_range", "instance", "min", "max", "min_margin", "max_margin", "fade_mode"), &RenderingServer::instance_geometry_set_visibility_range);
 	ClassDB::bind_method(D_METHOD("instance_geometry_set_lightmap", "instance", "lightmap", "lightmap_uv_scale", "lightmap_slice"), &RenderingServer::instance_geometry_set_lightmap);
 	ClassDB::bind_method(D_METHOD("instance_geometry_set_lod_bias", "instance", "lod_bias"), &RenderingServer::instance_geometry_set_lod_bias);
+	ClassDB::bind_method(D_METHOD("instance_geometry_set_geometry_id", "instance", "geometry_id"), &RenderingServer::instance_geometry_set_geometry_id);
 
 	ClassDB::bind_method(D_METHOD("instance_geometry_set_shader_parameter", "instance", "parameter", "value"), &RenderingServer::instance_geometry_set_shader_parameter);
 	ClassDB::bind_method(D_METHOD("instance_geometry_get_shader_parameter", "instance", "parameter"), &RenderingServer::instance_geometry_get_shader_parameter);

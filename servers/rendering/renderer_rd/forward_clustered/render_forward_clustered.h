@@ -58,6 +58,7 @@
 #define RB_TEX_SPECULAR_MSAA SNAME("specular_msaa")
 #define RB_TEX_NORMAL_ROUGHNESS SNAME("normal_roughness")
 #define RB_TEX_NORMAL_ROUGHNESS_MSAA SNAME("normal_roughness_msaa")
+#define RB_TEX_GEOMETRY_ID SNAME("geometry_id")
 #define RB_TEX_VOXEL_GI SNAME("voxel_gi")
 #define RB_TEX_VOXEL_GI_MSAA SNAME("voxel_gi_msaa")
 
@@ -152,6 +153,11 @@ public:
 		RID get_normal_roughness_msaa() const { return render_buffers->get_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_NORMAL_ROUGHNESS_MSAA); }
 		RID get_normal_roughness_msaa(uint32_t p_layer) { return render_buffers->get_texture_slice(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_NORMAL_ROUGHNESS_MSAA, p_layer, 0); }
 
+		void ensure_geometry_id();
+		bool has_geometry_id() const { return render_buffers->has_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_GEOMETRY_ID); }
+		RID get_geometry_id() const { return render_buffers->get_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_GEOMETRY_ID); }
+		RID get_geometry_id(uint32_t p_layer) { return render_buffers->get_texture_slice(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_GEOMETRY_ID, p_layer, 0); }
+
 		void ensure_voxelgi();
 		bool has_voxelgi() const { return render_buffers->has_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_VOXEL_GI); }
 		RID get_voxelgi() const { return render_buffers->get_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_VOXEL_GI); }
@@ -176,6 +182,7 @@ public:
 		RID get_depth_fb(DepthFrameBufferType p_type = DEPTH_FB);
 		RID get_specular_only_fb();
 		RID get_velocity_only_fb();
+		RID get_geometry_id_only_fb();
 
 		virtual void configure(RenderSceneBuffersRD *p_render_buffers) override;
 		virtual void free_data() override;
@@ -186,6 +193,8 @@ public:
 		static uint32_t get_specular_usage_bits(bool p_resolve, bool p_msaa, bool p_storage);
 		static RD::DataFormat get_normal_roughness_format();
 		static uint32_t get_normal_roughness_usage_bits(bool p_resolve, bool p_msaa, bool p_storage);
+		static RD::DataFormat get_geometry_id_format();
+		static uint32_t get_geometry_id_usage_bits(bool p_resolve, bool p_msaa, bool p_storage);
 		static RD::DataFormat get_voxelgi_format();
 		static uint32_t get_voxelgi_usage_bits(bool p_resolve, bool p_msaa, bool p_storage);
 	};
@@ -238,6 +247,8 @@ private:
 		COLOR_PASS_FLAG_ALBEDO = 1 << 2,
 		COLOR_PASS_FLAG_MULTIVIEW = 1 << 3,
 		COLOR_PASS_FLAG_MOTION_VECTORS = 1 << 4,
+		COLOR_PASS_FLAG_GEOMETRY_ID = 1 << 5,
+		COLOR_PASS_FLAG_GEOMETRY_ID_ONLY = 1 << 6,
 	};
 
 	struct GeometryInstanceSurfaceDataCache;
@@ -377,6 +388,8 @@ private:
 			uint32_t instance_uniforms_ofs; //base offset in global buffer for instance variables
 			uint32_t gi_offset; //GI information when using lightmapping (VCT or lightmap index)
 			uint32_t layer_mask;
+			uint32_t geometry_id;
+			uint32_t reserved[3]; // For Padding
 			float prev_transform[12];
 			float lightmap_uv_scale[4];
 #ifdef REAL_T_IS_DOUBLE
@@ -693,6 +706,7 @@ private:
 				uint32_t use_32_bit_shadows : 1;
 				uint32_t use_shadow_cubemaps : 1;
 				uint32_t use_shadow_dual_paraboloid : 1;
+				uint32_t use_geometry_id : 1;
 			};
 		};
 	};

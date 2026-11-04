@@ -4651,6 +4651,7 @@ void Node3DEditorViewport::_menu_option(int p_option) {
 		case VIEW_DISPLAY_WIREFRAME:
 		case VIEW_DISPLAY_OVERDRAW:
 		case VIEW_DISPLAY_UNSHADED:
+		case VIEW_DISPLAY_GEOMETRY_ID:
 		case VIEW_DISPLAY_LIGHTING:
 		case VIEW_DISPLAY_NORMAL_BUFFER:
 		case VIEW_DISPLAY_DEBUG_SHADOW_ATLAS:
@@ -4681,6 +4682,7 @@ void Node3DEditorViewport::_menu_option(int p_option) {
 				VIEW_DISPLAY_WIREFRAME,
 				VIEW_DISPLAY_OVERDRAW,
 				VIEW_DISPLAY_UNSHADED,
+				VIEW_DISPLAY_GEOMETRY_ID,
 				VIEW_DISPLAY_LIGHTING,
 				VIEW_DISPLAY_NORMAL_BUFFER,
 				VIEW_DISPLAY_DEBUG_SHADOW_ATLAS,
@@ -4713,6 +4715,7 @@ void Node3DEditorViewport::_menu_option(int p_option) {
 				Viewport::DEBUG_DRAW_WIREFRAME,
 				Viewport::DEBUG_DRAW_OVERDRAW,
 				Viewport::DEBUG_DRAW_UNSHADED,
+				Viewport::DEBUG_DRAW_GEOMETRY_ID,
 				Viewport::DEBUG_DRAW_LIGHTING,
 				Viewport::DEBUG_DRAW_NORMAL_BUFFER,
 				Viewport::DEBUG_DRAW_SHADOW_ATLAS,
@@ -7027,6 +7030,7 @@ Node3DEditorViewport::Node3DEditorViewport(Node3DEditor *p_spatial_editor, int p
 	view_display_menu->get_popup()->add_radio_check_shortcut(ED_SHORTCUT("spatial_editor/view_display_overdraw", TTRC("Display Overdraw")), VIEW_DISPLAY_OVERDRAW);
 	view_display_menu->get_popup()->add_radio_check_shortcut(ED_SHORTCUT("spatial_editor/view_display_lighting", TTRC("Display Lighting")), VIEW_DISPLAY_LIGHTING);
 	view_display_menu->get_popup()->add_radio_check_shortcut(ED_SHORTCUT("spatial_editor/view_display_unshaded", TTRC("Display Unshaded")), VIEW_DISPLAY_UNSHADED);
+	view_display_menu->get_popup()->add_radio_check_shortcut(ED_SHORTCUT("spatial_editor/view_display_geo_id", TTRC("Display Geometry ID")), VIEW_DISPLAY_GEOMETRY_ID);
 	view_display_menu->get_popup()->set_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_DISPLAY_NORMAL), true);
 
 	display_submenu = memnew(PopupMenu);

@@ -1022,23 +1022,31 @@ layout(location = 1) out uvec2 voxel_gi_buffer;
 #endif //MODE_RENDER_NORMAL
 #else // RENDER DEPTH
 
+#ifndef GEOMETRY_ID_ONLY
+
 #ifdef MODE_ALBEDO
 layout(location = 1) out vec4 albedo_buffer;
 #endif
 
 #ifdef MODE_SEPARATE_SPECULAR
-
 layout(location = 0) out vec4 diffuse_buffer; //diffuse (rgb) and roughness
 layout(location = 2) out vec4 specular_buffer; //specular and SSS (subsurface scatter)
 #else
-
 layout(location = 0) out vec4 frag_color;
-#endif // MODE_SEPARATE_SPECULAR
+#endif
+
+#endif // !GEOMETRY_ID_ONLY
 
 #endif // RENDER DEPTH
 
 #ifdef MOTION_VECTORS
 layout(location = 3) out vec2 motion_vector;
+#endif
+
+#if defined(GEOMETRY_ID_ONLY)
+layout(location = 0) out uint geometry_id_buffer;
+#elif defined(GEOMETRY_ID)
+layout(location = 4) out uint geometry_id_buffer;
 #endif
 
 #include "../scene_forward_aa_inc.glsl"
@@ -1173,6 +1181,8 @@ vec3 encode24(vec3 v) {
 
 void fragment_shader(in SceneData scene_data) {
 	uint instance_index = instance_index_interp;
+
+#ifndef GEOMETRY_ID_ONLY
 
 #ifdef PREMUL_ALPHA_USED
 	float premul_alpha = 1.0;
@@ -3211,6 +3221,12 @@ void fragment_shader(in SceneData scene_data) {
 	vec2 prev_position_uv = prev_position_clip * vec2(0.5, 0.5);
 
 	motion_vector = prev_position_uv - position_uv;
+#endif
+
+#endif // !GEOMETRY_ID_ONLY
+
+#if defined(GEOMETRY_ID_ONLY) || defined(GEOMETRY_ID)
+	geometry_id_buffer = instances.data[instance_index].geometry_id;
 #endif
 }
 

@@ -75,6 +75,20 @@
 		<member name="needs_separate_specular" type="bool" setter="set_needs_separate_specular" getter="get_needs_separate_specular">
 			If [code]true[/code] this triggers specular data being rendered to a separate buffer and combined after effects have been applied, only applicable for the Forward+ renderer.
 		</member>
+		<member name="needs_geometry_id" type="bool" setter="set_needs_geometry_id" getter="get_needs_geometry_id" default="false">
+			If [code]true[/code], this triggers the geometry ID buffer to be produced during the opaque render pass. Only applicable to the Forward+ renderer.
+			[b]Note:[/b] In [method _render_callback], to access the geometry ID buffer use:
+			[codeblock]
+			var render_scene_buffers = render_data.get_render_scene_buffers()
+			var geometry_id_buffer = render_scene_buffers.get_texture("forward_clustered", "geometry_id")
+			[/codeblock]
+			The buffer is an [code]R32_UINT[/code] texture and must be sampled with a [code]usampler2D[/code]. Pixels with the value [code]0[/code] have no geometry ID assigned.
+			[b]Note:[/b] The geometry ID buffer stores a single [code]uint32_t[/code] ID per pixel. Limitations:
+			- [b]No partial transparency.[/b] An alpha-blended surface writes its full ID at every covered pixel regardless of its alpha value. Two overlapping transparent surfaces produce a single ID (the front-most one), not a weighted blend.
+			- [b]No anti-aliased edges.[/b] The buffer is always single-sample. Under MSAA, it is produced in a dedicated non-MSAA pass, so edges are not covered by per-sample IDs.
+			- [b]Occlusion is respected.[/b] Surfaces behind opaque geometry do not write their ID. A transparent surface with [member GeometryInstance3D.geometry_id] set to [code]0[/code] writes [code]0[/code] and appears as background in the buffer, masking whatever is behind it.
+			- [b]Multiview is not supported.[/b] When rendering with multiple views, only view 0 receives a geometry ID.
+		</member>
 	</members>
 	<constants>
 		<constant name="EFFECT_CALLBACK_TYPE_PRE_OPAQUE" value="0" enum="EffectCallbackType">

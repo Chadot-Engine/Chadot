@@ -244,6 +244,16 @@ Ref<Material> GeometryInstance3D::get_material_overlay() const {
 	return material_overlay;
 }
 
+void GeometryInstance3D::set_geometry_id(uint32_t p_id) {
+	geometry_id = p_id;
+	RS::get_singleton()->instance_geometry_set_geometry_id(get_instance(), p_id);
+	update_configuration_warnings();
+}
+
+uint32_t GeometryInstance3D::get_geometry_id() const {
+	return geometry_id;
+}
+
 void GeometryInstance3D::set_transparency(float p_transparency) {
 	transparency = CLAMP(p_transparency, 0.0f, 1.0f);
 	RS::get_singleton()->instance_geometry_set_transparency(get_instance(), transparency);
@@ -576,6 +586,9 @@ void GeometryInstance3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_lod_bias", "bias"), &GeometryInstance3D::set_lod_bias);
 	ClassDB::bind_method(D_METHOD("get_lod_bias"), &GeometryInstance3D::get_lod_bias);
 
+	ClassDB::bind_method(D_METHOD("set_geometry_id", "geometry_id"), &GeometryInstance3D::set_geometry_id);
+	ClassDB::bind_method(D_METHOD("get_geometry_id"), &GeometryInstance3D::get_geometry_id);
+
 	ClassDB::bind_method(D_METHOD("set_transparency", "transparency"), &GeometryInstance3D::set_transparency);
 	ClassDB::bind_method(D_METHOD("get_transparency"), &GeometryInstance3D::get_transparency);
 
@@ -620,6 +633,7 @@ void GeometryInstance3D::_bind_methods() {
 	ADD_GROUP("Geometry", "");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "material_override", PROPERTY_HINT_RESOURCE_TYPE, "BaseMaterial3D,ExposedMaterial3D,ExposedShaderMaterial3D,ShaderMaterial", PROPERTY_USAGE_DEFAULT), "set_material_override", "get_material_override");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "material_overlay", PROPERTY_HINT_RESOURCE_TYPE, "BaseMaterial3D,ExposedMaterial3D,ExposedShaderMaterial3D,ShaderMaterial", PROPERTY_USAGE_DEFAULT), "set_material_overlay", "get_material_overlay");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "geometry_id"), "set_geometry_id", "get_geometry_id");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "transparency", PROPERTY_HINT_RANGE, "0.0,1.0,0.01"), "set_transparency", "get_transparency");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "cast_shadow", PROPERTY_HINT_ENUM, "Off,On,Double-Sided,Shadows Only"), "set_cast_shadows_setting", "get_cast_shadows_setting");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "extra_cull_margin", PROPERTY_HINT_RANGE, "0,16384,0.01,suffix:m"), "set_extra_cull_margin", "get_extra_cull_margin");

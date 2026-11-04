@@ -63,6 +63,17 @@ DebugEffects::DebugEffects() {
 
 		motion_vectors.pipeline.setup(motion_vectors.shader.version_get_shader(motion_vectors.shader_version, 0), RD::RENDER_PRIMITIVE_TRIANGLES, RD::PipelineRasterizationState(), RD::PipelineMultisampleState(), RD::PipelineDepthStencilState(), RD::PipelineColorBlendState::create_blend(), 0);
 	}
+
+	{
+		// Geometry ID debug shader.
+		Vector<String> modes;
+		modes.push_back("");
+
+		geometry_id.shader.initialize(modes);
+		geometry_id.shader_version = geometry_id.shader.version_create();
+
+		geometry_id.pipeline.setup(geometry_id.shader.version_get_shader(geometry_id.shader_version, 0), RD::RENDER_PRIMITIVE_TRIANGLES, RD::PipelineRasterizationState(), RD::PipelineMultisampleState(), RD::PipelineDepthStencilState(), RD::PipelineColorBlendState::create_blend(), 0);
+	}
 }
 
 void DebugEffects::_create_frustum_arrays() {
@@ -177,6 +188,8 @@ DebugEffects::~DebugEffects() {
 	}
 
 	motion_vectors.shader.version_free(motion_vectors.shader_version);
+
+	geometry_id.shader.version_free(geometry_id.shader_version);
 }
 
 void DebugEffects::draw_shadow_frustum(RID p_light, const Projection &p_cam_projection, const Transform3D &p_cam_transform, RID p_dest_fb, const Rect2 p_rect) {
@@ -375,6 +388,32 @@ void DebugEffects::draw_motion_vectors(RID p_velocity, RID p_depth, RID p_dest_f
 	RD::get_singleton()->draw_list_set_push_constant(draw_list, &motion_vectors.push_constant, sizeof(MotionVectorsPushConstant));
 	RD::get_singleton()->draw_list_draw(draw_list, false, 1u, 3u);
 #endif
+
+	RD::get_singleton()->draw_list_end();
+}
+
+void DebugEffects::draw_geometry_id(RID p_id_texture, RID p_dest_fb, Size2i p_internal_size, Size2i p_target_size) {
+	MaterialStorage *material_storage = MaterialStorage::get_singleton();
+	ERR_FAIL_NULL(material_storage);
+
+	UniformSetCacheRD *uniform_set_cache = UniformSetCacheRD::get_singleton();
+	ERR_FAIL_NULL(uniform_set_cache);
+
+	RID default_sampler = material_storage->sampler_rd_get_default(RSE::CANVAS_ITEM_TEXTURE_FILTER_NEAREST, RSE::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
+	RD::Uniform u_source_id(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 0, Vector<RID>({ default_sampler, p_id_texture }));
+
+	geometry_id.push_constant.internal_size[0] = p_internal_size.width;
+	geometry_id.push_constant.internal_size[1] = p_internal_size.height;
+	geometry_id.push_constant.target_size[0] = p_target_size.width;
+	geometry_id.push_constant.target_size[1] = p_target_size.height;
+
+	RD::DrawListID draw_list = RD::get_singleton()->draw_list_begin(p_dest_fb);
+	RD::get_singleton()->draw_list_bind_render_pipeline(draw_list, geometry_id.pipeline.get_render_pipeline(RD::INVALID_ID, RD::get_singleton()->framebuffer_get_format(p_dest_fb), false, RD::get_singleton()->draw_list_get_current_pass()));
+
+	RID shader = geometry_id.shader.version_get_shader(geometry_id.shader_version, 0);
+	RD::get_singleton()->draw_list_bind_uniform_set(draw_list, uniform_set_cache->get_cache(shader, 0, u_source_id), 0);
+	RD::get_singleton()->draw_list_set_push_constant(draw_list, &geometry_id.push_constant, sizeof(GeometryIDPushConstant));
+	RD::get_singleton()->draw_list_draw(draw_list, false, 1u, 3u);
 
 	RD::get_singleton()->draw_list_end();
 }

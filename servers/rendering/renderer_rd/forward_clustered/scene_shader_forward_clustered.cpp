@@ -315,6 +315,14 @@ uint16_t SceneShaderForwardClustered::ShaderData::_get_shader_version(PipelineVe
 				shader_flags |= SHADER_COLOR_PASS_FLAG_MOTION_VECTORS;
 			}
 
+			if (p_color_pass_flags & PIPELINE_COLOR_PASS_FLAG_GEOMETRY_ID) {
+				shader_flags |= SHADER_COLOR_PASS_FLAG_GEOMETRY_ID;
+			}
+
+			if (p_color_pass_flags & PIPELINE_COLOR_PASS_FLAG_GEOMETRY_ID_ONLY) {
+				shader_flags |= SHADER_COLOR_PASS_FLAG_GEOMETRY_ID_ONLY;
+			}
+
 			if (p_color_pass_flags & PIPELINE_COLOR_PASS_FLAG_LIGHTMAP) {
 				shader_flags |= SHADER_COLOR_PASS_FLAG_LIGHTMAP;
 			}
@@ -347,11 +355,11 @@ void SceneShaderForwardClustered::ShaderData::_create_pipeline(PipelineKey p_pip
 			"WIREFRAME:", p_pipeline_key.wireframe);
 #endif
 
-	// Color pass -> attachment 0: Color/Diffuse, attachment 1: Albedo, attachment 2: Separate Specular, attachment 3: Motion Vectors
+	// Color pass -> attachment 0: Color/Diffuse, attachment 1: Albedo, attachment 2: Separate Specular, attachment 3: Motion Vectors, attachment 4: Geometry ID
 	RD::PipelineColorBlendState::Attachment blend_attachment = blend_mode_to_blend_attachment(BlendMode(blend_mode));
 	RD::PipelineColorBlendState blend_state_color_blend;
-	blend_state_color_blend.attachments = { blend_attachment, RD::PipelineColorBlendState::Attachment(), RD::PipelineColorBlendState::Attachment(), RD::PipelineColorBlendState::Attachment() };
-	RD::PipelineColorBlendState blend_state_color_opaque = RD::PipelineColorBlendState::create_disabled(4);
+	blend_state_color_blend.attachments = { blend_attachment, RD::PipelineColorBlendState::Attachment(), RD::PipelineColorBlendState::Attachment(), RD::PipelineColorBlendState::Attachment(), RD::PipelineColorBlendState::Attachment() };
+	RD::PipelineColorBlendState blend_state_color_opaque = RD::PipelineColorBlendState::create_disabled(5);
 	RD::PipelineColorBlendState blend_state_depth_normal_roughness = RD::PipelineColorBlendState::create_disabled(1);
 	RD::PipelineColorBlendState blend_state_depth_normal_roughness_giprobe = RD::PipelineColorBlendState::create_disabled(2);
 
@@ -437,7 +445,9 @@ void SceneShaderForwardClustered::ShaderData::_create_pipeline(PipelineKey p_pip
 
 	RD::PipelineColorBlendState blend_state;
 	if (p_pipeline_key.version == PIPELINE_VERSION_COLOR_PASS) {
-		if (p_pipeline_key.color_pass_flags & PIPELINE_COLOR_PASS_FLAG_TRANSPARENT) {
+		if (p_pipeline_key.color_pass_flags & PIPELINE_COLOR_PASS_FLAG_GEOMETRY_ID_ONLY) {
+			blend_state = RD::PipelineColorBlendState::create_disabled(1);
+		} else if (p_pipeline_key.color_pass_flags & PIPELINE_COLOR_PASS_FLAG_TRANSPARENT) {
 			if (alpha_antialiasing_mode == ALPHA_ANTIALIASING_ALPHA_TO_COVERAGE) {
 				multisample_state.enable_alpha_to_coverage = true;
 			} else if (alpha_antialiasing_mode == ALPHA_ANTIALIASING_ALPHA_TO_COVERAGE_AND_TO_ONE) {
@@ -670,6 +680,8 @@ void SceneShaderForwardClustered::init(const String p_defines) {
 			"\n#define USE_LIGHTMAP\n", // SHADER_COLOR_PASS_FLAG_LIGHTMAP
 			"\n#define USE_MULTIVIEW\n", // SHADER_COLOR_PASS_FLAG_MULTIVIEW
 			"\n#define MOTION_VECTORS\n", // SHADER_COLOR_PASS_FLAG_MOTION_VECTORS
+			"\n#define GEOMETRY_ID\n", // SHADER_COLOR_PASS_FLAG_GEOMETRY_ID
+			"\n#define GEOMETRY_ID_ONLY\n", // SHADER_COLOR_PASS_FLAG_GEOMETRY_ID_ONLY
 		};
 
 		for (int i = 0; i < SHADER_COLOR_PASS_FLAG_COUNT; i++) {
@@ -682,7 +694,7 @@ void SceneShaderForwardClustered::init(const String p_defines) {
 
 			// Assign a group based on what features this pass contains.
 			ShaderGroup group = SHADER_GROUP_BASE;
-			bool advanced_group = (i & SHADER_COLOR_PASS_FLAG_ALBEDO) || (i & SHADER_COLOR_PASS_FLAG_SEPARATE_SPECULAR) || (i & SHADER_COLOR_PASS_FLAG_LIGHTMAP) || (i & SHADER_COLOR_PASS_FLAG_MOTION_VECTORS);
+			bool advanced_group = (i & SHADER_COLOR_PASS_FLAG_ALBEDO) || (i & SHADER_COLOR_PASS_FLAG_SEPARATE_SPECULAR) || (i & SHADER_COLOR_PASS_FLAG_LIGHTMAP) || (i & SHADER_COLOR_PASS_FLAG_MOTION_VECTORS) || (i & SHADER_COLOR_PASS_FLAG_GEOMETRY_ID || (i & SHADER_COLOR_PASS_FLAG_GEOMETRY_ID_ONLY));
 			bool multiview_group = i & SHADER_COLOR_PASS_FLAG_MULTIVIEW;
 			if (advanced_group && multiview_group) {
 				group = SHADER_GROUP_ADVANCED_MULTIVIEW;

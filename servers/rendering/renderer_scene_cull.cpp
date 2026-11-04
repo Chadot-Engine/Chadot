@@ -758,6 +758,7 @@ void RendererSceneCull::instance_set_base(RID p_instance, RID p_base) {
 				geom->geometry_instance->set_layer_mask(instance->layer_mask);
 				geom->geometry_instance->set_pivot_data(instance->sorting_offset, instance->use_aabb_center);
 				geom->geometry_instance->set_lod_bias(instance->lod_bias);
+				geom->geometry_instance->set_geometry_id(instance->geometry_id);
 				geom->geometry_instance->set_transparency(instance->transparency);
 				geom->geometry_instance->set_use_baked_light(instance->baked_light);
 				geom->geometry_instance->set_use_dynamic_gi(instance->dynamic_gi);
@@ -993,6 +994,19 @@ void RendererSceneCull::instance_set_pivot_data(RID p_instance, float p_sorting_
 	} else if (instance->base_type == RSE::INSTANCE_DECAL && instance->base_data) {
 		InstanceDecalData *decal = static_cast<InstanceDecalData *>(instance->base_data);
 		RSG::texture_storage->decal_instance_set_sorting_offset(decal->instance, instance->sorting_offset);
+	}
+}
+
+void RendererSceneCull::instance_geometry_set_geometry_id(RID p_instance, uint32_t p_geometry_id) {
+	Instance *instance = instance_owner.get_or_null(p_instance);
+	ERR_FAIL_NULL(instance);
+
+	instance->geometry_id = p_geometry_id;
+
+	if ((1 << instance->base_type) & RSE::INSTANCE_GEOMETRY_MASK && instance->base_data) {
+		InstanceGeometryData *geom = static_cast<InstanceGeometryData *>(instance->base_data);
+		ERR_FAIL_NULL(geom->geometry_instance);
+		geom->geometry_instance->set_geometry_id(p_geometry_id);
 	}
 }
 

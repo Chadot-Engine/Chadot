@@ -106,6 +106,14 @@ void RenderGeometryInstanceBase::set_parent_fade_alpha(float p_alpha) {
 	parent_fade_alpha = p_alpha;
 }
 
+void RenderGeometryInstanceBase::set_geometry_id(uint32_t p_geometry_id) {
+	if (geometry_id == p_geometry_id) {
+		return;
+	}
+	geometry_id = p_geometry_id;
+	_mark_dirty();
+}
+
 void RenderGeometryInstanceBase::set_transparency(float p_transparency) {
 	force_alpha = CLAMP(1.0 - p_transparency, 0, 1);
 }

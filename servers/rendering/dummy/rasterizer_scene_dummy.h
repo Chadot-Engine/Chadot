@@ -59,6 +59,7 @@ public:
 		virtual void set_layer_mask(uint32_t p_layer_mask) override {}
 		virtual void set_fade_range(bool p_enable_near, float p_near_begin, float p_near_end, bool p_enable_far, float p_far_begin, float p_far_end) override {}
 		virtual void set_parent_fade_alpha(float p_alpha) override {}
+		virtual void set_geometry_id(uint32_t p_geometry_id) override {}
 		virtual void set_transparency(float p_transparency) override {}
 		virtual void set_use_baked_light(bool p_enable) override {}
 		virtual void set_use_dynamic_gi(bool p_enable) override {}
