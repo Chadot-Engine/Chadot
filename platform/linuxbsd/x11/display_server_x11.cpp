@@ -2487,6 +2487,9 @@ void DisplayServerX11::window_set_transient(DisplayServerEnums::WindowID p_windo
 			if ((xwa.map_state == IsViewable) && !wd_parent.no_focus && !wd_window.is_popup && _window_focus_check()) {
 				_set_input_focus(wd_parent.x11_window, RevertToPointerRoot);
 			}
+		} else if (wd_window.focused && wd_window.ime_active && wd_parent.is_popup && (xwa.map_state == IsViewable)) {
+			// Popups are not managed by the window manager, so focus taken by the IME window of a nested popup (e.g. its search bar) has to be returned to the parent popup manually.
+			_set_input_focus(wd_parent.x11_window, RevertToPointerRoot);
 		}
 	} else {
 		ERR_FAIL_COND(!windows.has(p_parent));
@@ -7414,7 +7417,11 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, DisplayServ
 					fallback = "bd_double_arrow";
 					break;
 				case DisplayServerEnums::CURSOR_MOVE:
-					cursor_img[i] = cursor_img[DisplayServerEnums::CURSOR_DRAG];
+					// Fallback to DRAG, but reload instead of aliasing to avoid double-free on cleanup.
+					cursor_img[i] = XcursorLibraryLoadImage("fleur", cursor_theme, cursor_size);
+					if (!cursor_img[i]) {
+						fallback = "grabbing";
+					}
 					break;
 				case DisplayServerEnums::CURSOR_VSPLIT:
 					fallback = "sb_v_double_arrow";

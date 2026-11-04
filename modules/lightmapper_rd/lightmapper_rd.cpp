@@ -304,7 +304,6 @@ void LightmapperRD::_sort_triangle_clusters(uint32_t p_cluster_size, uint32_t p_
 }
 
 Lightmapper::BakeError LightmapperRD::_blit_meshes_into_atlas(int p_max_texture_size, int p_denoiser_range, Vector<Ref<Image>> &albedo_images, Vector<Ref<Image>> &emission_images, AABB &bounds, Size2i &atlas_size, int &atlas_slices, float p_supersampling_factor, BakeStepFunc p_step_function, void *p_bake_userdata) {
-
 	// Per-Object Packing Mode
 	if (GLOBAL_GET("rendering/lightmapping/atlas/per_object_slices")) {
 		Vector<Size2i> sizes;
@@ -499,7 +498,6 @@ Lightmapper::BakeError LightmapperRD::_blit_meshes_into_atlas(int p_max_texture_
 
 	return BAKE_OK;
 }
-
 void LightmapperRD::_create_acceleration_structures(RenderingDevice *rd, Size2i atlas_size, int atlas_slices, AABB &bounds, int grid_size, uint32_t p_cluster_size, Vector<Probe> &p_probe_positions, GenerateProbes p_generate_probes, Vector<int> &slice_triangle_count, Vector<int> &slice_seam_count, RID &vertex_buffer, RID &triangle_buffer, RID &lights_buffer, RID &r_triangle_indices_buffer, RID &r_cluster_indices_buffer, RID &r_cluster_aabbs_buffer, RID &probe_positions_buffer, RID &grid_texture, RID &seams_buffer, BakeStepFunc p_step_function, void *p_bake_userdata) {
 	HashMap<Vertex, uint32_t, VertexHash> vertex_map;
 
@@ -1214,6 +1212,40 @@ LightmapperRD::BakeError LightmapperRD::bake(BakeQuality p_quality, bool p_use_d
 	shadowmask_textures.clear();
 	int grid_size = 128;
 
+	// Attempt to create a local device by requesting it from rendering server first.
+	// If that fails because the current renderer is not implemented on top of RD, we fall back to creating
+	// a local rendering device manually depending on the current platform.
+	Error err;
+	RenderingContextDriver *rcd = nullptr;
+	RenderingDevice *rd = RenderingServer::get_singleton()->create_local_rendering_device();
+	if (rd == nullptr) {
+#if defined(METAL_ENABLED)
+		rcd = memnew(RenderingContextDriverMetal);
+		rd = memnew(RenderingDevice);
+#endif
+#if defined(VULKAN_ENABLED)
+		if (rcd == nullptr) {
+			rcd = memnew(RenderingContextDriverVulkan);
+			rd = memnew(RenderingDevice);
+		}
+#endif
+		if (rcd != nullptr && rd != nullptr) {
+			err = rcd->initialize();
+			if (err == OK) {
+				err = rd->initialize(rcd);
+			}
+
+			if (err != OK) {
+				memdelete(rd);
+				memdelete(rcd);
+				rd = nullptr;
+				rcd = nullptr;
+			}
+		}
+	}
+
+	ERR_FAIL_NULL_V(rd, BAKE_ERROR_LIGHTMAP_CANT_PRE_BAKE_MESHES);
+
 	/* STEP 1: Fetch material textures and compute the bounds */
 
 	AABB bounds;
@@ -1224,6 +1256,8 @@ LightmapperRD::BakeError LightmapperRD::bake(BakeQuality p_quality, bool p_use_d
 
 	BakeError bake_error = _blit_meshes_into_atlas(p_max_texture_size, p_denoiser_range, albedo_images, emission_images, bounds, atlas_size, atlas_slices, p_supersampling_factor, p_step_function, p_bake_userdata);
 	if (bake_error != BAKE_OK) {
+		memdelete(rd);
+		memdelete(rcd);
 		return bake_error;
 	}
 
@@ -1260,40 +1294,6 @@ LightmapperRD::BakeError LightmapperRD::bake(BakeQuality p_quality, bool p_use_d
 		}
 	}
 #endif
-
-	// Attempt to create a local device by requesting it from rendering server first.
-	// If that fails because the current renderer is not implemented on top of RD, we fall back to creating
-	// a local rendering device manually depending on the current platform.
-	Error err;
-	RenderingContextDriver *rcd = nullptr;
-	RenderingDevice *rd = RenderingServer::get_singleton()->create_local_rendering_device();
-	if (rd == nullptr) {
-#if defined(METAL_ENABLED)
-		rcd = memnew(RenderingContextDriverMetal);
-		rd = memnew(RenderingDevice);
-#endif
-#if defined(VULKAN_ENABLED)
-		if (rcd == nullptr) {
-			rcd = memnew(RenderingContextDriverVulkan);
-			rd = memnew(RenderingDevice);
-		}
-#endif
-		if (rcd != nullptr && rd != nullptr) {
-			err = rcd->initialize();
-			if (err == OK) {
-				err = rd->initialize(rcd);
-			}
-
-			if (err != OK) {
-				memdelete(rd);
-				memdelete(rcd);
-				rd = nullptr;
-				rcd = nullptr;
-			}
-		}
-	}
-
-	ERR_FAIL_NULL_V(rd, BAKE_ERROR_LIGHTMAP_CANT_PRE_BAKE_MESHES);
 
 	RID albedo_array_tex;
 	RID emission_array_tex;

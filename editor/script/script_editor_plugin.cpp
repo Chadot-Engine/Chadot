@@ -1319,7 +1319,7 @@ void DocumentEditorContainer::_close_tab(int p_idx, bool p_save) {
 			_update_history_arrows();
 		}
 
-		document_list->update_list();
+		_update_filenames();
 		_save_layout();
 		_update_find_replace_bar();
 	}
@@ -2748,7 +2748,7 @@ PackedStringArray DocumentEditorContainer::get_unsaved_files() const {
 
 void DocumentEditorContainer::save_current_script() {
 	ScriptEditorBase *current = _get_current_editor();
-	if (!current || _test_script_times_on_disk()) {
+	if (!current || !current->is_unsaved() || _test_script_times_on_disk()) {
 		return;
 	}
 
@@ -4176,6 +4176,7 @@ DocumentEditorContainer::DocumentEditorContainer(bool p_is_main_editor, const St
 
 	script_name_button = memnew(Button);
 	script_name_button->set_flat(true);
+	script_name_button->set_theme_type_variation(SceneStringName(FlatButton));
 	script_name_button->set_text_overrun_behavior(TextServer::OVERRUN_TRIM_ELLIPSIS);
 	script_name_button->set_h_size_flags(SIZE_EXPAND_FILL);
 	script_name_button->set_tooltip_text(TTRC("Navigate to document list."));
