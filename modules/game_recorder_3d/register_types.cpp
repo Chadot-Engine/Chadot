@@ -42,19 +42,6 @@
 #endif
 
 // GameRecorder3D Types
-enum CaptureMode : uint8_t
-{
-	CAPTURE_DISABLED 			= 0,
-	CAPTURE_RENDER_SYNC 		= 1,
-	CAPTURE_PHYSICS_SYNC 		= 2
-};
-VARIANT_ENUM_CAST(CaptureMode);
-enum CacheMode : uint8_t
-{
-	CACHE_INMEMORY 				= 0,
-	CACHE_ONDISK 				= 1,
-};
-VARIANT_ENUM_CAST(CacheMode);
 enum TransformMode : uint8_t
 {
 	TRANSFORM_LOCAL 			= 0,
@@ -91,6 +78,18 @@ struct CaptureBuffer {
 class GameRecorder3D : public Node3D {
 	GDCLASS(GameRecorder3D, Node3D);
 
+	enum CaptureMode : uint8_t
+	{
+		CAPTURE_DISABLED 			= 0,
+		CAPTURE_RENDER_SYNC 		= 1,
+		CAPTURE_PHYSICS_SYNC 		= 2
+	};
+	enum CacheMode : uint8_t
+	{
+		CACHE_INMEMORY 				= 0,
+		CACHE_ONDISK 				= 1,
+	};
+
 private:
 	CaptureMode captureMode = CaptureMode::CAPTURE_DISABLED;
 	CacheMode cacheMode = CacheMode::CACHE_ONDISK;
@@ -99,38 +98,7 @@ private:
 	bool captureChildren = false;
 
 protected:
-	static void _bind_methods() {
-		// Capture Mode
-		BIND_ENUM_CONSTANT(CaptureMode::CAPTURE_DISABLED);
-		BIND_ENUM_CONSTANT(CaptureMode::CAPTURE_RENDER_SYNC);
-		BIND_ENUM_CONSTANT(CaptureMode::CAPTURE_PHYSICS_SYNC);
-		ClassDB::bind_method(D_METHOD("set_capture_mode", "mode"), &GameRecorder3D::set_capture_mode);
-		ClassDB::bind_method(D_METHOD("get_capture_mode"), &GameRecorder3D::get_capture_mode);
-		ADD_PROPERTY(PropertyInfo(Variant::INT, "capture_mode", PROPERTY_HINT_ENUM, "Disabled,Render,Physics"), "set_capture_mode", "get_capture_mode");
-
-		// Cache Mode
-		BIND_ENUM_CONSTANT(CacheMode::CACHE_INMEMORY);
-		BIND_ENUM_CONSTANT(CacheMode::CACHE_ONDISK);
-		ClassDB::bind_method(D_METHOD("set_cache_mode", "mode"), &GameRecorder3D::set_cache_mode);
-		ClassDB::bind_method(D_METHOD("get_cache_mode"), &GameRecorder3D::get_cache_mode);
-		ADD_PROPERTY(PropertyInfo(Variant::INT, "cache_mode", PROPERTY_HINT_ENUM, "In-Memory,On Disk"), "set_cache_mode", "get_cache_mode");
-
-		// Output Directory
-		ClassDB::bind_method(D_METHOD("set_output_directory", "path"), &GameRecorder3D::set_output_directory);
-		ClassDB::bind_method(D_METHOD("get_output_directory"), &GameRecorder3D::get_output_directory);
-		ADD_PROPERTY(PropertyInfo(Variant::STRING, "output_directory", PROPERTY_HINT_DIR), "set_output_directory", "get_output_directory");
-
-		// Capture Flags
-		ClassDB::bind_method(D_METHOD("set_capture_target_list", "enabled"), &GameRecorder3D::set_capture_target_list);
-		ClassDB::bind_method(D_METHOD("get_capture_target_list"), &GameRecorder3D::get_capture_target_list);
-		ADD_PROPERTY(PropertyInfo(Variant::BOOL, "capture_target_list"), "set_capture_target_list", "get_capture_target_list");
-		ClassDB::bind_method(D_METHOD("set_capture_children", "enabled"), &GameRecorder3D::set_capture_children);
-		ClassDB::bind_method(D_METHOD("get_capture_children"), &GameRecorder3D::get_capture_children);
-		ADD_PROPERTY(PropertyInfo(Variant::BOOL, "capture_children"), "set_capture_children", "get_capture_children");
-
-		// Bind Methods
-		ClassDB::bind_method(D_METHOD("write_collected_frames"), &GameRecorder3D::write_collected_frames);
-	}
+	static void _bind_methods();
 
 public:
 	void set_capture_mode(CaptureMode mode) {
@@ -355,6 +323,42 @@ private:
 	Vector<Node3D *> targetNodes;
 	Vector<CaptureBuffer> memoryCaptureBuffer;
 };
+
+// GameRecorder3D Bindings
+VARIANT_ENUM_CAST(GameRecorder3D::CaptureMode);
+VARIANT_ENUM_CAST(GameRecorder3D::CacheMode);
+void GameRecorder3D::_bind_methods() {
+	// Capture Mode
+	BIND_ENUM_CONSTANT(CaptureMode::CAPTURE_DISABLED);
+	BIND_ENUM_CONSTANT(CaptureMode::CAPTURE_RENDER_SYNC);
+	BIND_ENUM_CONSTANT(CaptureMode::CAPTURE_PHYSICS_SYNC);
+	ClassDB::bind_method(D_METHOD("set_capture_mode", "mode"), &GameRecorder3D::set_capture_mode);
+	ClassDB::bind_method(D_METHOD("get_capture_mode"), &GameRecorder3D::get_capture_mode);
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "capture_mode", PROPERTY_HINT_ENUM, "Disabled,Render,Physics"), "set_capture_mode", "get_capture_mode");
+
+	// Cache Mode
+	BIND_ENUM_CONSTANT(CacheMode::CACHE_INMEMORY);
+	BIND_ENUM_CONSTANT(CacheMode::CACHE_ONDISK);
+	ClassDB::bind_method(D_METHOD("set_cache_mode", "mode"), &GameRecorder3D::set_cache_mode);
+	ClassDB::bind_method(D_METHOD("get_cache_mode"), &GameRecorder3D::get_cache_mode);
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "cache_mode", PROPERTY_HINT_ENUM, "In-Memory,On Disk"), "set_cache_mode", "get_cache_mode");
+
+	// Output Directory
+	ClassDB::bind_method(D_METHOD("set_output_directory", "path"), &GameRecorder3D::set_output_directory);
+	ClassDB::bind_method(D_METHOD("get_output_directory"), &GameRecorder3D::get_output_directory);
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "output_directory", PROPERTY_HINT_DIR), "set_output_directory", "get_output_directory");
+
+	// Capture Flags
+	ClassDB::bind_method(D_METHOD("set_capture_target_list", "enabled"), &GameRecorder3D::set_capture_target_list);
+	ClassDB::bind_method(D_METHOD("get_capture_target_list"), &GameRecorder3D::get_capture_target_list);
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "capture_target_list"), "set_capture_target_list", "get_capture_target_list");
+	ClassDB::bind_method(D_METHOD("set_capture_children", "enabled"), &GameRecorder3D::set_capture_children);
+	ClassDB::bind_method(D_METHOD("get_capture_children"), &GameRecorder3D::get_capture_children);
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "capture_children"), "set_capture_children", "get_capture_children");
+
+	// Bind Methods
+	ClassDB::bind_method(D_METHOD("write_collected_frames"), &GameRecorder3D::write_collected_frames);
+}
 
 // JenovaFrameImporter Implementation
 class JenovaFrameImporter : public Object {
