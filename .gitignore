@@ -397,5 +397,3 @@ $RECYCLE.BIN/
 *.lnk
 *.generated.props
 
-# Jenova Core
-/modules/jenova_core

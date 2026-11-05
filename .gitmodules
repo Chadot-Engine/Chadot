@@ -2,3 +2,7 @@
 	path = modules/dlss
 	url = https://github.com/Chadot-Engine/Chadot-Module-DLSS
 	branch = master
+[submodule "modules/jenova_core"]
+	path = modules/jenova_core
+	url = https://github.com/Chadot-Engine/Chadot-Module-Jenova
+	branch = master

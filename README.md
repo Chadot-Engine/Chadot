@@ -11,7 +11,7 @@ It provides a fully customizable rendering pipeline with support for systems suc
 > While most features are expected to work on Linux, Linux support is not a primary development target.
 
 ## Current Features
-- Compatible with [Jenova Framework](https://github.com/Jenova-Framework)
+- C++ Scripting Powered by [Jenova Framework](https://github.com/Jenova-Framework)
 - Per-Light Hybrid Light Mapping and Shadow-Masking (PHLMS)
 - Neural Renderer Integration Powered by NVIDIA™ DLSS 5 (DirectX 12)
 - NVIDIA™ DLSS Upscaler (Super Resolution) Native Integration
