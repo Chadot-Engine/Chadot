@@ -14,6 +14,27 @@ Features distributed under PJPPL v1.0 may only be used through official Chadot b
 
 PJPPL and any future revisions of the license apply retroactively to all code, features, and components released under PJPPL. The latest version of the license supersedes all previous versions and applies to both past and future PJPPL licensed content unless explicitly stated otherwise.
 
+============================================================================================
+Commits & Code Changes Licensed Under PJPPL v1.0 (Projekt Jenova Public Proprietary License)
+============================================================================================
+- 70135a5ee38dc2840453533390d95269a2333e42
+- eea4bd765e983cb3f8d685e3dc0a372f6954b127
+- b521595319dbb2e000e1adb54c685ecb35e29e1c
+- df2c6f62e5bcdeb0e64637c15e86f6a34a5bdad0
+- 55ad8a92d984d5f71e181eafa836d5710e67083d
+- 75ffee0b49dbd9fb7d5deded4cf6675538ab1256
+- 2f4d2501fb732cfeea8c5df993c353fdced6ee4d
+- 9edaae5e453a6eda1bd0a1cfcb791071fd703a14
+- 556db7a385ace496f7bc8dbc22f869196749d3be
+- 9bac4913685864e61b09c1283faf49bb4b96944e
+- 911b8c03b03167200c8b8d420523643e8f368246
+- 81e50baf938d4ad4f9911439528db9b117dba2e9
+- 617eae31861d4f06008a518451a57f094c82490e
+============================================================================================
+Commits & Code Changes Licenced Under PJPL v1.0 (Projekt Jenova Proprietary License)
+============================================================================================
+- 5142dcdb10791989ae6ad23298d00ea1b843a9ea
+============================================================================================
 
 -- Godot License --
 

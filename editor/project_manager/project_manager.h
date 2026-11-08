@@ -167,6 +167,7 @@ class ProjectManager : public Control {
 	Button *manage_tags_btn = nullptr;
 	Button *erase_btn = nullptr;
 	Button *erase_missing_btn = nullptr;
+	Button *validate_btn = nullptr;
 	Button *eula_btn = nullptr;
 
 	HBoxContainer *open_btn_container = nullptr;
@@ -208,6 +209,7 @@ class ProjectManager : public Control {
 	void _update_project_buttons();
 	void _open_options_popup();
 	void _open_recovery_mode_ask(bool manual = false);
+	void _validate_build();
 	void _open_eula_page();
 
 	void _on_project_created(const String &dir, bool edit);

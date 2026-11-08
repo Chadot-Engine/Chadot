@@ -676,6 +676,8 @@ void Main::print_help(const char *p_binary) {
 	print_help_option("--benchmark", "Benchmark the run time and print it to console.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("--benchmark-file <path>", "Benchmark the run time and save it to a given file in JSON format. The path should be absolute.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 #endif // TOOLS_ENABLED
+	print_help_title("Licensing options");
+	print_help_option("--validate-build", "Verify the binary against the official registry to confirm license compliance.\n");
 #ifdef TESTS_ENABLED
 	print_help_option("--test [--help]", "Run unit tests. Use --test --help for more information.\n");
 #endif // TESTS_ENABLED
@@ -1710,6 +1712,16 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			audio_driver = NULL_AUDIO_DRIVER;
 			display_driver = NULL_DISPLAY_DRIVER;
 			main_args.push_back(arg);
+		} else if (arg == "--validate-build") {
+			// Validate Build
+			String validateURL = "https://chadot-engine.github.io/authorized-builds?hash=";
+			validateURL += FileAccess::get_sha256(OS::get_singleton()->get_executable_path());
+			OS::get_singleton()->shell_open(validateURL);
+			cmdline_tool = true;
+			audio_driver = NULL_AUDIO_DRIVER;
+			display_driver = NULL_DISPLAY_DRIVER;
+			main_args.push_back(arg);
+			quit_after = 1;
 #ifdef MODULE_GDSCRIPT_ENABLED
 		} else if (arg == "--gdscript-docs") {
 			if (N) {

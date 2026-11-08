@@ -1512,7 +1512,7 @@ def generate_copyright_header(filename: str) -> str:
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             CHADOT ENGINE                              */
-/*                     https://chadotengine.github.io/                    */
+/*                   https://chadot-engine.github.io/                     */
 /**************************************************************************/
 /* Copyright (c) 2024-present MemarDesign LLC. (Hamid.Memar)              */
 /* Copyright (c) 2014-present Godot Engine contributors.                  */

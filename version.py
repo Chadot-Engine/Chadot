@@ -5,5 +5,5 @@ minor = 8
 patch = 0
 status = "beta"
 module_config = ""
-website = "https://chadotengine.github.io"
+website = "https://chadot-engine.github.io"
 docs = "latest"

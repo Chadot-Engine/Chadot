@@ -94,6 +94,7 @@ public:
 		"--convert-3to4",
 		"--validate-conversion-3to4",
 		"--doctool",
+		"--validate-build",
 		"--test",
 	};
 
