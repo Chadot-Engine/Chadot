@@ -13,6 +13,7 @@ It provides a fully customizable rendering pipeline with support for systems suc
 ## Current Features
 - C++ Scripting Powered by [Jenova Framework](https://github.com/Jenova-Framework)
 - Per-Light Hybrid Light Mapping and Shadow-Masking (PHLMS)
+- High-Performance Per-Strand Hair & Fur Rendering (Jenova Fibers)
 - Neural Renderer Integration Powered by NVIDIA™ DLSS 5 (DirectX 12)
 - NVIDIA™ DLSS Upscaler (Super Resolution) Native Integration
 - MeshInstanceEx3D (aka RayCompute3D) Integration

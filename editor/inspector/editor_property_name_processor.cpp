@@ -335,9 +335,14 @@ EditorPropertyNameProcessor::EditorPropertyNameProcessor() {
 	capitalize_string_remaps["tm"] = String::utf8("™");
 
 #ifdef MODULE_HM_MATERIALS_ENABLED
-	capitalize_string_remaps["rtb"] = "RTB™";
-	capitalize_string_remaps["lbf"] = "LBF™";
-	capitalize_string_remaps["tea"] = "TEA™";
+	capitalize_string_remaps["rtb"] = "RTB";
+	capitalize_string_remaps["lbf"] = "LBF";
+	capitalize_string_remaps["tea"] = "TEA";
+#endif
+
+#ifdef MODULE_FIBERS_ENABLED
+	capitalize_string_remaps["vat"] = "VAT";
+	capitalize_string_remaps["rtp"] = "RTP";
 #endif
 
 #ifdef DLSS_FEATURE_ENABLED
