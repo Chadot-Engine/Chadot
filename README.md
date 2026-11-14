@@ -26,6 +26,7 @@ It provides a fully customizable rendering pipeline with support for systems suc
 - Voxel-Friendly Triangle-Based Lightmap Unwrapper/Packer
 - Custom Panorama Reflections for Reflection Probes
 - Ground-truth Geometry Masking (Real-Time Cryptomatte)
+- Support for Indirect Mesh Rendering using Compute Shaders
 
 ### Work in Progress
 - New API and SDK for engine internals

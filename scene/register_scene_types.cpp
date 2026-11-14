@@ -140,6 +140,7 @@
 #include "scene/resources/label_settings.h"
 #include "scene/resources/material.h"
 #include "scene/resources/mesh_data_tool.h"
+#include "scene/resources/mesh_rd.h"
 #include "scene/resources/mesh_texture.h"
 #include "scene/resources/multimesh.h"
 #if !defined(NAVIGATION_2D_DISABLED) || !defined(NAVIGATION_3D_DISABLED)
@@ -1012,6 +1013,7 @@ void register_scene_types() {
 	GDREGISTER_CLASS(TextureCubemapRD);
 	GDREGISTER_CLASS(TextureCubemapArrayRD);
 	GDREGISTER_CLASS(Texture3DRD);
+	GDREGISTER_CLASS(MeshRD);
 #endif // RD_ENABLED
 
 	GDREGISTER_CLASS(Animation);
