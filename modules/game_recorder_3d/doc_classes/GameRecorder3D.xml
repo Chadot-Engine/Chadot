@@ -7,7 +7,7 @@
 		[GameRecorder3D] is a node that captures a Chadot scene and exports it to third-party DCC tools for cinematic or simulation use cases.
 
 		For example, you can create a car in DCC, import it into Chadot, set up car physics, drive it, and let [GameRecorder3D] capture the motion of the simulation. You can then load the captured data back into DCC for car animation.
-		It can also be used for in-engine replay but the importer is [b]not implemented yet[/b].
+		It can also be used for in-engine replay using [JenovaFrameImporter] from [b]Scene > Import > Import Jenova Frame Sequence...[/b]
 
 		Currently, [GameRecorder3D] supports capturing all [Node3D] driven nodes, including physics bodies, as well as bones and skeleton animation.
 	</description>
