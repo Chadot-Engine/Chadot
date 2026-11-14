@@ -1028,9 +1028,13 @@ layout(location = 1) out uvec2 voxel_gi_buffer;
 layout(location = 1) out vec4 albedo_buffer;
 #endif
 
+#ifdef MODE_TANGENT
+layout(location = 2) out vec4 tangent_buffer;
+#endif
+
 #ifdef MODE_SEPARATE_SPECULAR
 layout(location = 0) out vec4 diffuse_buffer; //diffuse (rgb) and roughness
-layout(location = 2) out vec4 specular_buffer; //specular and SSS (subsurface scatter)
+layout(location = 3) out vec4 specular_buffer; //specular and SSS (subsurface scatter)
 #else
 layout(location = 0) out vec4 frag_color;
 #endif
@@ -1040,13 +1044,13 @@ layout(location = 0) out vec4 frag_color;
 #endif // RENDER DEPTH
 
 #ifdef MOTION_VECTORS
-layout(location = 3) out vec2 motion_vector;
+layout(location = 4) out vec2 motion_vector;
 #endif
 
 #if defined(GEOMETRY_ID_ONLY)
 layout(location = 0) out uint geometry_id_buffer;
 #elif defined(GEOMETRY_ID)
-layout(location = 4) out uint geometry_id_buffer;
+layout(location = 5) out uint geometry_id_buffer;
 #endif
 
 #include "../scene_forward_aa_inc.glsl"
@@ -3221,6 +3225,14 @@ void fragment_shader(in SceneData scene_data) {
 	vec2 prev_position_uv = prev_position_clip * vec2(0.5, 0.5);
 
 	motion_vector = prev_position_uv - position_uv;
+#endif
+
+#ifdef MODE_TANGENT
+#if defined(TANGENT_USED) && defined(NORMAL_USED)
+	tangent_buffer = vec4(normalize(tangent), sign(dot(cross(normal, tangent), binormal)));
+#else
+	tangent_buffer = vec4(0.0);
+#endif
 #endif
 
 #endif // !GEOMETRY_ID_ONLY

@@ -54,6 +54,8 @@
 
 #define RB_TEX_ALBEDO SNAME("albedo")
 #define RB_TEX_ALBEDO_MSAA SNAME("albedo_msaa")
+#define RB_TEX_TANGENT SNAME("tangent")
+#define RB_TEX_TANGENT_MSAA SNAME("tangent_msaa")
 #define RB_TEX_SPECULAR SNAME("specular")
 #define RB_TEX_SPECULAR_MSAA SNAME("specular_msaa")
 #define RB_TEX_NORMAL_ROUGHNESS SNAME("normal_roughness")
@@ -140,6 +142,12 @@ public:
 		RID get_albedo(uint32_t p_layer) { return render_buffers->get_texture_slice(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_ALBEDO, p_layer, 0); }
 		RID get_albedo_msaa(uint32_t p_layer) { return render_buffers->get_texture_slice(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_ALBEDO_MSAA, p_layer, 0); }
 
+		void ensure_tangent();
+		bool has_tangent() const { return render_buffers->has_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_TANGENT); }
+		RID get_tangent() const { return render_buffers->get_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_TANGENT); }
+		RID get_tangent(uint32_t p_layer) { return render_buffers->get_texture_slice(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_TANGENT, p_layer, 0); }
+		RID get_tangent_msaa(uint32_t p_layer) { return render_buffers->get_texture_slice(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_TANGENT_MSAA, p_layer, 0); }
+
 		void ensure_specular();
 		bool has_specular() const { return render_buffers->has_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_SPECULAR); }
 		RID get_specular() const { return render_buffers->get_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_SPECULAR); }
@@ -189,6 +197,8 @@ public:
 
 		static RD::DataFormat get_albedo_format();
 		static uint32_t get_albedo_usage_bits(bool p_resolve, bool p_msaa, bool p_storage);
+		static RD::DataFormat get_tangent_format();
+		static uint32_t get_tangent_usage_bits(bool p_resolve, bool p_msaa, bool p_storage);
 		static RD::DataFormat get_specular_format();
 		static uint32_t get_specular_usage_bits(bool p_resolve, bool p_msaa, bool p_storage);
 		static RD::DataFormat get_normal_roughness_format();
@@ -245,10 +255,11 @@ private:
 		COLOR_PASS_FLAG_TRANSPARENT = 1 << 0,
 		COLOR_PASS_FLAG_SEPARATE_SPECULAR = 1 << 1,
 		COLOR_PASS_FLAG_ALBEDO = 1 << 2,
-		COLOR_PASS_FLAG_MULTIVIEW = 1 << 3,
-		COLOR_PASS_FLAG_MOTION_VECTORS = 1 << 4,
-		COLOR_PASS_FLAG_GEOMETRY_ID = 1 << 5,
-		COLOR_PASS_FLAG_GEOMETRY_ID_ONLY = 1 << 6,
+		COLOR_PASS_FLAG_TANGENT = 1 << 3,
+		COLOR_PASS_FLAG_MULTIVIEW = 1 << 4,
+		COLOR_PASS_FLAG_MOTION_VECTORS = 1 << 5,
+		COLOR_PASS_FLAG_GEOMETRY_ID = 1 << 6,
+		COLOR_PASS_FLAG_GEOMETRY_ID_ONLY = 1 << 7,
 	};
 
 	struct GeometryInstanceSurfaceDataCache;
@@ -695,6 +706,7 @@ private:
 				uint32_t texture_samples : 3;
 				uint32_t use_reflection_probes : 1;
 				uint32_t use_albedo : 1;
+				uint32_t use_tangent : 1;
 				uint32_t use_separate_specular : 1;
 				uint32_t use_motion_vectors : 1;
 				uint32_t use_normal_and_roughness : 1;

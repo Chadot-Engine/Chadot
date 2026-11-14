@@ -19,6 +19,7 @@ It provides a fully customizable rendering pipeline with support for systems suc
 - MeshInstanceEx3D (aka RayCompute3D) Integration
 - GameRecorder3D Integration for Cinematic/Replay
 - Full G-Buffer Access in Post-Processing Shaders
+- Extended G-Buffer Render Channels (Albedo & Tangents)
 - Custom Lightmap Support with ReLight Integration
 - Native Lottie Vector Animation Support
 - Per-Viewport Global Material Override (Environment)

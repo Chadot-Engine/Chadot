@@ -59,6 +59,7 @@ private:
 	bool needs_motion_vectors = false;
 	bool needs_normal_roughness = false;
 	bool needs_albedo = false;
+	bool needs_tangent = false;
 	bool needs_separate_specular = false;
 	bool needs_geometry_id = false;
 
@@ -93,6 +94,9 @@ public:
 
 	void set_needs_albedo(bool p_enabled);
 	bool get_needs_albedo() const;
+
+	void set_needs_tangent(bool p_enabled);
+	bool get_needs_tangent() const;
 
 	void set_needs_separate_specular(bool p_enabled);
 	bool get_needs_separate_specular() const;

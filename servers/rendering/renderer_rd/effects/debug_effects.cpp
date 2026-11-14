@@ -65,6 +65,17 @@ DebugEffects::DebugEffects() {
 	}
 
 	{
+		// Tangent debug shader.
+		Vector<String> modes;
+		modes.push_back("");
+
+		tangent.shader.initialize(modes);
+		tangent.shader_version = tangent.shader.version_create();
+
+		tangent.pipeline.setup(tangent.shader.version_get_shader(tangent.shader_version, 0), RD::RENDER_PRIMITIVE_TRIANGLES, RD::PipelineRasterizationState(), RD::PipelineMultisampleState(), RD::PipelineDepthStencilState(), RD::PipelineColorBlendState::create_blend(), 0);
+	}
+
+	{
 		// Geometry ID debug shader.
 		Vector<String> modes;
 		modes.push_back("");
@@ -188,6 +199,8 @@ DebugEffects::~DebugEffects() {
 	}
 
 	motion_vectors.shader.version_free(motion_vectors.shader_version);
+
+	tangent.shader.version_free(tangent.shader_version);
 
 	geometry_id.shader.version_free(geometry_id.shader_version);
 }
@@ -388,6 +401,32 @@ void DebugEffects::draw_motion_vectors(RID p_velocity, RID p_depth, RID p_dest_f
 	RD::get_singleton()->draw_list_set_push_constant(draw_list, &motion_vectors.push_constant, sizeof(MotionVectorsPushConstant));
 	RD::get_singleton()->draw_list_draw(draw_list, false, 1u, 3u);
 #endif
+
+	RD::get_singleton()->draw_list_end();
+}
+
+void DebugEffects::draw_tangent(RID p_tangent_texture, RID p_dest_fb, Size2i p_internal_size, Size2i p_target_size) {
+	MaterialStorage *material_storage = MaterialStorage::get_singleton();
+	ERR_FAIL_NULL(material_storage);
+
+	UniformSetCacheRD *uniform_set_cache = UniformSetCacheRD::get_singleton();
+	ERR_FAIL_NULL(uniform_set_cache);
+
+	RID default_sampler = material_storage->sampler_rd_get_default(RSE::CANVAS_ITEM_TEXTURE_FILTER_NEAREST, RSE::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
+	RD::Uniform u_source_tangent(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 0, Vector<RID>({ default_sampler, p_tangent_texture }));
+
+	tangent.push_constant.internal_size[0] = p_internal_size.width;
+	tangent.push_constant.internal_size[1] = p_internal_size.height;
+	tangent.push_constant.target_size[0] = p_target_size.width;
+	tangent.push_constant.target_size[1] = p_target_size.height;
+
+	RD::DrawListID draw_list = RD::get_singleton()->draw_list_begin(p_dest_fb);
+	RD::get_singleton()->draw_list_bind_render_pipeline(draw_list, tangent.pipeline.get_render_pipeline(RD::INVALID_ID, RD::get_singleton()->framebuffer_get_format(p_dest_fb), false, RD::get_singleton()->draw_list_get_current_pass()));
+
+	RID shader = tangent.shader.version_get_shader(tangent.shader_version, 0);
+	RD::get_singleton()->draw_list_bind_uniform_set(draw_list, uniform_set_cache->get_cache(shader, 0, u_source_tangent), 0);
+	RD::get_singleton()->draw_list_set_push_constant(draw_list, &tangent.push_constant, sizeof(TangentPushConstant));
+	RD::get_singleton()->draw_list_draw(draw_list, false, 1u, 3u);
 
 	RD::get_singleton()->draw_list_end();
 }

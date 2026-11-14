@@ -72,10 +72,19 @@
 		<member name="needs_albedo" type="bool" setter="set_needs_albedo" getter="get_needs_albedo">
 			If [code]true[/code], the opaque geometry's raw unlit albedo is written to a separate buffer during the opaque pass, only applicable for the Forward+ renderer.
 		</member>
+		<member name="needs_tangent" type="bool" setter="set_needs_tangent" getter="get_needs_tangent">
+			If [code]true[/code], this triggers the tangent buffer to be produced during the opaque render pass. Only applicable to the Forward+ renderer.
+			[b]Note:[/b] In [method _render_callback], to access the tangent buffer use:
+			[codeblock]
+			var render_scene_buffers = render_data.get_render_scene_buffers()
+			var tangent_buffer = render_scene_buffers.get_texture("forward_clustered", "tangent")
+			[/codeblock]
+			The buffer is a [code]R16G16B16A16_SFLOAT[/code] texture: [code]xyz[/code] is the view-space tangent, [code]w[/code] is the handedness sign. Pixels where the material does not declare a tangent (or the value is [code](0, 0, 0, 0)[/code]) should be treated as "reconstruct from normal-roughness".
+		</member>
 		<member name="needs_separate_specular" type="bool" setter="set_needs_separate_specular" getter="get_needs_separate_specular">
 			If [code]true[/code] this triggers specular data being rendered to a separate buffer and combined after effects have been applied, only applicable for the Forward+ renderer.
 		</member>
-		<member name="needs_geometry_id" type="bool" setter="set_needs_geometry_id" getter="get_needs_geometry_id" default="false">
+		<member name="needs_geometry_id" type="bool" setter="set_needs_geometry_id" getter="get_needs_geometry_id">
 			If [code]true[/code], this triggers the geometry ID buffer to be produced during the opaque render pass. Only applicable to the Forward+ renderer.
 			[b]Note:[/b] In [method _render_callback], to access the geometry ID buffer use:
 			[codeblock]

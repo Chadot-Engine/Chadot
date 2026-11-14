@@ -33,6 +33,7 @@
 #include "servers/rendering/renderer_rd/pipeline_cache_rd.h"
 #include "servers/rendering/renderer_rd/shaders/effects/motion_vectors.glsl.gen.h"
 #include "servers/rendering/renderer_rd/shaders/effects/shadow_frustum.glsl.gen.h"
+#include "servers/rendering/renderer_rd/shaders/effects/tangent.glsl.gen.h"
 #include "servers/rendering/renderer_rd/shaders/effects/geometry_id.glsl.gen.h"
 
 namespace RendererRD {
@@ -82,6 +83,18 @@ private:
 		MotionVectorsPushConstant push_constant;
 	} motion_vectors;
 
+	struct TangentPushConstant {
+		float internal_size[2];
+		float target_size[2];
+	};
+
+	struct {
+		TangentShaderRD shader;
+		RID shader_version;
+		PipelineCacheRD pipeline;
+		TangentPushConstant push_constant;
+	} tangent;
+
 	struct GeometryIDPushConstant {
 		float internal_size[2];
 		float target_size[2];
@@ -103,6 +116,7 @@ public:
 
 	void draw_shadow_frustum(RID p_light, const Projection &p_cam_projection, const Transform3D &p_cam_transform, RID p_dest_fb, const Rect2 p_rect);
 	void draw_motion_vectors(RID p_velocity, RID p_depth, RID p_dest_fb, const Projection &p_current_projection, const Transform3D &p_current_transform, const Projection &p_previous_projection, const Transform3D &p_previous_transform, Size2i p_resolution);
+	void draw_tangent(RID p_tangent_texture, RID p_dest_fb, Size2i p_internal_size, Size2i p_target_size);
 	void draw_geometry_id(RID p_id_texture, RID p_dest_fb, Size2i p_internal_size, Size2i p_target_size);
 };
 

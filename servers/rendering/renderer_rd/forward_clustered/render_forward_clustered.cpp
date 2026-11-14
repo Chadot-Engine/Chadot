@@ -66,6 +66,18 @@ void RenderForwardClustered::RenderBufferDataForwardClustered::ensure_albedo() {
 	}
 }
 
+void RenderForwardClustered::RenderBufferDataForwardClustered::ensure_tangent() {
+	ERR_FAIL_NULL(render_buffers);
+
+	if (!render_buffers->has_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_TANGENT)) {
+		bool msaa = render_buffers->get_msaa_3d() != RSE::VIEWPORT_MSAA_DISABLED;
+		render_buffers->create_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_TANGENT, get_tangent_format(), get_tangent_usage_bits(msaa, false, render_buffers->get_can_be_storage()));
+		if (msaa) {
+			render_buffers->create_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_TANGENT_MSAA, get_tangent_format(), get_tangent_usage_bits(false, msaa, render_buffers->get_can_be_storage()), render_buffers->get_texture_samples());
+		}
+	}
+}
+
 void RenderForwardClustered::RenderBufferDataForwardClustered::ensure_specular() {
 	ERR_FAIL_NULL(render_buffers);
 
@@ -235,6 +247,12 @@ RID RenderForwardClustered::RenderBufferDataForwardClustered::get_color_pass_fb(
 		albedo = render_buffers->get_texture(RB_SCOPE_FORWARD_CLUSTERED, use_msaa ? RB_TEX_ALBEDO_MSAA : RB_TEX_ALBEDO);
 	}
 
+	RID tangent;
+	if (p_color_pass_flags & COLOR_PASS_FLAG_TANGENT) {
+		ensure_tangent();
+		tangent = render_buffers->get_texture(RB_SCOPE_FORWARD_CLUSTERED, use_msaa ? RB_TEX_TANGENT_MSAA : RB_TEX_TANGENT);
+	}
+
 	RID specular;
 	if (p_color_pass_flags & COLOR_PASS_FLAG_SEPARATE_SPECULAR) {
 		ensure_specular();
@@ -257,9 +275,9 @@ RID RenderForwardClustered::RenderBufferDataForwardClustered::get_color_pass_fb(
 
 	if (render_buffers->has_texture(RB_SCOPE_VRS, RB_TEXTURE)) {
 		RID vrs_texture = render_buffers->get_texture(RB_SCOPE_VRS, RB_TEXTURE);
-		return FramebufferCacheRD::get_singleton()->get_cache_multiview(v_count, color, albedo, specular, velocity_buffer, geometry_id, depth, vrs_texture);
+		return FramebufferCacheRD::get_singleton()->get_cache_multiview(v_count, color, albedo, tangent, specular, velocity_buffer, geometry_id, depth, vrs_texture);
 	} else {
-		return FramebufferCacheRD::get_singleton()->get_cache_multiview(v_count, color, albedo, specular, velocity_buffer, geometry_id, depth);
+		return FramebufferCacheRD::get_singleton()->get_cache_multiview(v_count, color, albedo, tangent, specular, velocity_buffer, geometry_id, depth);
 	}
 }
 
@@ -324,6 +342,14 @@ RD::DataFormat RenderForwardClustered::RenderBufferDataForwardClustered::get_alb
 }
 
 uint32_t RenderForwardClustered::RenderBufferDataForwardClustered::get_albedo_usage_bits(bool p_resolve, bool p_msaa, bool p_storage) {
+	return RenderSceneBuffersRD::get_color_usage_bits(p_resolve, p_msaa, p_storage);
+}
+
+RD::DataFormat RenderForwardClustered::RenderBufferDataForwardClustered::get_tangent_format() {
+	return RD::DATA_FORMAT_R16G16B16A16_SFLOAT;
+}
+
+uint32_t RenderForwardClustered::RenderBufferDataForwardClustered::get_tangent_usage_bits(bool p_resolve, bool p_msaa, bool p_storage) {
 	return RenderSceneBuffersRD::get_color_usage_bits(p_resolve, p_msaa, p_storage);
 }
 
@@ -538,6 +564,10 @@ void RenderForwardClustered::_render_list_template(RenderingDevice::DrawListID p
 
 				if constexpr ((p_color_pass_flags & COLOR_PASS_FLAG_ALBEDO) != 0) {
 					pipeline_key.color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_ALBEDO;
+				}
+
+				if constexpr ((p_color_pass_flags & COLOR_PASS_FLAG_TANGENT) != 0) {
+					pipeline_key.color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_TANGENT;
 				}
 
 				if constexpr ((p_color_pass_flags & COLOR_PASS_FLAG_SEPARATE_SPECULAR) != 0) {
@@ -770,22 +800,54 @@ void RenderForwardClustered::_render_list(RenderingDevice::DrawListID p_draw_lis
 				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_SEPARATE_SPECULAR | COLOR_PASS_FLAG_MOTION_VECTORS);
 				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_MULTIVIEW | COLOR_PASS_FLAG_MOTION_VECTORS);
 				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_SEPARATE_SPECULAR | COLOR_PASS_FLAG_MULTIVIEW | COLOR_PASS_FLAG_MOTION_VECTORS);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_TANGENT);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_MULTIVIEW);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_MOTION_VECTORS);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_MULTIVIEW | COLOR_PASS_FLAG_MOTION_VECTORS);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_ALBEDO);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_MULTIVIEW);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_MOTION_VECTORS);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_MULTIVIEW | COLOR_PASS_FLAG_MOTION_VECTORS);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_SEPARATE_SPECULAR);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_SEPARATE_SPECULAR | COLOR_PASS_FLAG_MULTIVIEW);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_SEPARATE_SPECULAR | COLOR_PASS_FLAG_MOTION_VECTORS);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_SEPARATE_SPECULAR | COLOR_PASS_FLAG_MULTIVIEW | COLOR_PASS_FLAG_MOTION_VECTORS);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_SEPARATE_SPECULAR);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_SEPARATE_SPECULAR | COLOR_PASS_FLAG_MULTIVIEW);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_SEPARATE_SPECULAR | COLOR_PASS_FLAG_MOTION_VECTORS);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_SEPARATE_SPECULAR | COLOR_PASS_FLAG_MULTIVIEW | COLOR_PASS_FLAG_MOTION_VECTORS);
 				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID);
-				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_MOTION_VECTORS);
 				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_MULTIVIEW);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_MOTION_VECTORS);
 				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_MULTIVIEW | COLOR_PASS_FLAG_MOTION_VECTORS);
 				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_SEPARATE_SPECULAR);
-				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_SEPARATE_SPECULAR | COLOR_PASS_FLAG_MOTION_VECTORS);
 				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_SEPARATE_SPECULAR | COLOR_PASS_FLAG_MULTIVIEW);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_SEPARATE_SPECULAR | COLOR_PASS_FLAG_MOTION_VECTORS);
 				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_SEPARATE_SPECULAR | COLOR_PASS_FLAG_MULTIVIEW | COLOR_PASS_FLAG_MOTION_VECTORS);
 				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_ALBEDO);
-				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_MOTION_VECTORS);
 				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_MULTIVIEW);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_MOTION_VECTORS);
 				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_MULTIVIEW | COLOR_PASS_FLAG_MOTION_VECTORS);
 				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_SEPARATE_SPECULAR);
-				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_SEPARATE_SPECULAR | COLOR_PASS_FLAG_MOTION_VECTORS);
 				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_SEPARATE_SPECULAR | COLOR_PASS_FLAG_MULTIVIEW);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_SEPARATE_SPECULAR | COLOR_PASS_FLAG_MOTION_VECTORS);
 				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_SEPARATE_SPECULAR | COLOR_PASS_FLAG_MULTIVIEW | COLOR_PASS_FLAG_MOTION_VECTORS);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_TANGENT);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_MULTIVIEW);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_MOTION_VECTORS);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_MULTIVIEW | COLOR_PASS_FLAG_MOTION_VECTORS);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_ALBEDO);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_MULTIVIEW);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_MOTION_VECTORS);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_MULTIVIEW | COLOR_PASS_FLAG_MOTION_VECTORS);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_SEPARATE_SPECULAR);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_SEPARATE_SPECULAR | COLOR_PASS_FLAG_MULTIVIEW);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_SEPARATE_SPECULAR | COLOR_PASS_FLAG_MOTION_VECTORS);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_SEPARATE_SPECULAR | COLOR_PASS_FLAG_MULTIVIEW | COLOR_PASS_FLAG_MOTION_VECTORS);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_SEPARATE_SPECULAR);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_SEPARATE_SPECULAR | COLOR_PASS_FLAG_MULTIVIEW);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_SEPARATE_SPECULAR | COLOR_PASS_FLAG_MOTION_VECTORS);
+				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID | COLOR_PASS_FLAG_TANGENT | COLOR_PASS_FLAG_ALBEDO | COLOR_PASS_FLAG_SEPARATE_SPECULAR | COLOR_PASS_FLAG_MULTIVIEW | COLOR_PASS_FLAG_MOTION_VECTORS);
 				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID_ONLY);
 				VALID_FLAG_COMBINATION(COLOR_PASS_FLAG_GEOMETRY_ID_ONLY | COLOR_PASS_FLAG_TRANSPARENT);
 
@@ -1943,6 +2005,7 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 	bool ce_needs_motion_vectors = _compositor_effects_has_flag(p_render_data, RSE::COMPOSITOR_EFFECT_FLAG_NEEDS_MOTION_VECTORS);
 	bool ce_needs_normal_roughness = _compositor_effects_has_flag(p_render_data, RSE::COMPOSITOR_EFFECT_FLAG_NEEDS_ROUGHNESS);
 	bool ce_needs_albedo = _compositor_effects_has_flag(p_render_data, RSE::COMPOSITOR_EFFECT_FLAG_NEEDS_ALBEDO);
+	bool ce_needs_tangent = _compositor_effects_has_flag(p_render_data, RSE::COMPOSITOR_EFFECT_FLAG_NEEDS_TANGENT) || (get_debug_draw_mode() == RSE::VIEWPORT_DEBUG_DRAW_TANGENT);
 	bool ce_needs_separate_specular = _compositor_effects_has_flag(p_render_data, RSE::COMPOSITOR_EFFECT_FLAG_NEEDS_SEPARATE_SPECULAR);
 	bool ce_needs_geometry_id = _compositor_effects_has_flag(p_render_data, RSE::COMPOSITOR_EFFECT_FLAG_NEEDS_GEOMETRY_ID);
 
@@ -2128,6 +2191,10 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 			color_pass_flags |= COLOR_PASS_FLAG_ALBEDO;
 		}
 
+		if (ce_needs_tangent) {
+			color_pass_flags |= COLOR_PASS_FLAG_TANGENT;
+		}
+
 		color_framebuffer = rb_data->get_color_pass_fb(color_pass_flags);
 		color_only_framebuffer = rb_data->get_color_only_fb();
 		samplers = rb->get_samplers();
@@ -2214,6 +2281,10 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 		rb_data->ensure_albedo();
 	}
 
+	if (ce_needs_tangent && !is_reflection_probe) {
+		rb_data->ensure_tangent();
+	}
+
 	if (global_surface_data.normal_texture_used && !is_reflection_probe) {
 		rb_data->ensure_normal_roughness_texture();
 	}
@@ -2234,7 +2305,7 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 		}
 	}
 
-	if (using_sss || ce_needs_albedo || using_separate_specular || scene_state.used_lightmap || scene_state.lightmaps_used > 0 || using_voxelgi || global_surface_data.sss_used || using_geometry_id) {
+	if (using_sss || ce_needs_albedo || ce_needs_tangent || using_separate_specular || scene_state.used_lightmap || scene_state.lightmaps_used > 0 || using_voxelgi || global_surface_data.sss_used || using_geometry_id) {
 		scene_shader.enable_advanced_shader_group(p_render_data->scene_data->view_count > 1);
 	}
 
@@ -2257,6 +2328,10 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 
 	if (ce_needs_albedo) {
 		global_pipeline_data_required.use_albedo = true;
+	}
+
+	if (ce_needs_tangent) {
+		global_pipeline_data_required.use_tangent = true;
 	}
 
 	// Update the compiled pipelines if any of the requirements have changed.
@@ -2480,6 +2555,7 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 
 				if (rb_data.is_valid()) {
 					c.push_back(Color(0, 0, 0, 0)); // Albedo
+					c.push_back(Color(0, 0, 0, 0)); // Tangent. Cleared to 0 = "No Tangent".
 					c.push_back(Color(0, 0, 0, 0)); // Separate specular.
 					c.push_back(Color(0, 0, 0, 0)); // Motion vector. Pushed to the clear color vector even if the framebuffer isn't bound.
 					c.push_back(Color(0, 0, 0, 0)); // Geometry ID. Cleared to 0 = "No ID".
@@ -2566,6 +2642,12 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 		if (ce_needs_albedo && use_msaa) {
 			for (uint32_t v = 0; v < rb->get_view_count(); v++) {
 				RD::get_singleton()->texture_resolve_multisample(rb_data->get_albedo_msaa(v), rb_data->get_albedo(v));
+			}
+		}
+
+		if (ce_needs_tangent && use_msaa) {
+			for (uint32_t v = 0; v < rb->get_view_count(); v++) {
+				RD::get_singleton()->texture_resolve_multisample(rb_data->get_tangent_msaa(v), rb_data->get_tangent(v));
 			}
 		}
 
@@ -2720,7 +2802,7 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 	rp_uniform_set = _setup_render_pass_uniform_set(RENDER_LIST_ALPHA, p_render_data, is_multiview, radiance_texture, samplers, transparent_pass_uniform_buffer_index, true);
 
 	{
-		uint32_t transparent_color_pass_flags = (color_pass_flags | uint32_t(COLOR_PASS_FLAG_TRANSPARENT)) & ~uint32_t(COLOR_PASS_FLAG_ALBEDO) & ~uint32_t(COLOR_PASS_FLAG_SEPARATE_SPECULAR);
+		uint32_t transparent_color_pass_flags = (color_pass_flags | uint32_t(COLOR_PASS_FLAG_TRANSPARENT)) & ~uint32_t(COLOR_PASS_FLAG_ALBEDO) & ~uint32_t(COLOR_PASS_FLAG_TANGENT) & ~uint32_t(COLOR_PASS_FLAG_SEPARATE_SPECULAR);
 		// Motion vectors should not be overwritten by transparent objects.
 		transparent_color_pass_flags &= ~uint32_t(COLOR_PASS_FLAG_MOTION_VECTORS);
 
@@ -2972,6 +3054,14 @@ void RenderForwardClustered::_render_buffers_debug_draw(const RenderDataRD *p_re
 		RID ambient_texture = rb->get_texture(RB_SCOPE_GI, RB_TEX_AMBIENT);
 		RID reflection_texture = rb->get_texture(RB_SCOPE_GI, RB_TEX_REFLECTION);
 		copy_effects->copy_to_fb_rect(ambient_texture, texture_storage->render_target_get_rd_framebuffer(render_target), Rect2(Vector2(), rtsize), false, false, false, true, reflection_texture, rb->get_view_count() > 1);
+	}
+
+	if (get_debug_draw_mode() == RSE::VIEWPORT_DEBUG_DRAW_TANGENT && rb_data->has_tangent()) {
+		RID tangent_texture = rb_data->get_tangent(0);
+		RID dest_fb = texture_storage->render_target_get_rd_framebuffer(render_target);
+		Size2i internal_size = rb->get_internal_size();
+		Size2i target_size = texture_storage->render_target_get_size(render_target);
+		debug_effects->draw_tangent(tangent_texture, dest_fb, internal_size, target_size);
 	}
 
 	if (get_debug_draw_mode() == RSE::VIEWPORT_DEBUG_DRAW_GEOMETRY_ID && rb_data->has_geometry_id()) {
@@ -4929,7 +5019,7 @@ void RenderForwardClustered::_geometry_instance_update(RenderGeometryInstance *p
 	ginstance->dirty_list_element.remove_from_list();
 }
 
-static RD::FramebufferFormatID _get_color_framebuffer_format_for_pipeline(RD::DataFormat p_color_format, bool p_can_be_storage, RD::TextureSamples p_samples, bool p_albedo, bool p_specular, bool p_velocity, uint32_t p_view_count) {
+static RD::FramebufferFormatID _get_color_framebuffer_format_for_pipeline(RD::DataFormat p_color_format, bool p_can_be_storage, RD::TextureSamples p_samples, bool p_albedo, bool p_tangent, bool p_specular, bool p_velocity, uint32_t p_view_count) {
 	const bool multisampling = p_samples > RD::TEXTURE_SAMPLES_1;
 	RD::AttachmentFormat attachment;
 	attachment.samples = p_samples;
@@ -4948,6 +5038,14 @@ static RD::FramebufferFormatID _get_color_framebuffer_format_for_pipeline(RD::Da
 	if (p_albedo) {
 		attachment.format = RenderForwardClustered::RenderBufferDataForwardClustered::get_albedo_format();
 		attachment.usage_flags = RenderForwardClustered::RenderBufferDataForwardClustered::get_albedo_usage_bits(false, multisampling, p_can_be_storage);
+		attachments.push_back(attachment);
+	} else {
+		attachments.push_back(unused_attachment);
+	}
+
+	if (p_tangent) {
+		attachment.format = RenderForwardClustered::RenderBufferDataForwardClustered::get_tangent_format();
+		attachment.usage_flags = RenderForwardClustered::RenderBufferDataForwardClustered::get_tangent_usage_bits(false, multisampling, p_can_be_storage);
 		attachments.push_back(attachment);
 	} else {
 		attachments.push_back(unused_attachment);
@@ -5137,38 +5235,45 @@ void RenderForwardClustered::_mesh_compile_pipelines_for_surface(const SurfacePi
 
 				// View count is assumed to be 2 as the configuration is dependent on the viewport. It's likely a safe assumption for stereo rendering.
 				uint32_t view_count = multiview ? 2 : 1;
-				pipeline_key.framebuffer_format_id = _get_color_framebuffer_format_for_pipeline(buffers_color_format, buffers_can_be_storage, RD::TextureSamples(p_global.texture_samples), false, false, false, view_count);
+				pipeline_key.framebuffer_format_id = _get_color_framebuffer_format_for_pipeline(buffers_color_format, buffers_can_be_storage, RD::TextureSamples(p_global.texture_samples), false, false, false, false, view_count);
 				_mesh_compile_pipeline_for_surface(p_surface.shader, p_surface.mesh_surface, true, p_surface.instanced, p_source, pipeline_key, r_pipeline_pairs);
 
 				// Generate all the possible variants used during the advanced color passes.
 				const uint32_t albedo_iterations = p_global.use_albedo ? 2 : 1;
+				const uint32_t tangent_iterations = p_global.use_tangent ? 2 : 1;
 				const uint32_t separate_specular_iterations = p_global.use_separate_specular ? 2 : 1;
 				const uint32_t motion_vectors_iterations = p_global.use_motion_vectors ? 2 : 1;
 				uint32_t base_color_pass_flags = pipeline_key.color_pass_flags;
 				for (uint32_t albedo = 0; albedo < albedo_iterations; albedo++) {
-					for (uint32_t separate_specular = 0; separate_specular < separate_specular_iterations; separate_specular++) {
-						for (uint32_t motion_vectors = 0; motion_vectors < motion_vectors_iterations; motion_vectors++) {
-							if (!albedo && !separate_specular && !motion_vectors) {
-								// This case was already generated.
-								continue;
+					for (uint32_t tangent = 0; tangent < tangent_iterations; tangent++) {
+						for (uint32_t separate_specular = 0; separate_specular < separate_specular_iterations; separate_specular++) {
+							for (uint32_t motion_vectors = 0; motion_vectors < motion_vectors_iterations; motion_vectors++) {
+								if (!albedo && !tangent && !separate_specular && !motion_vectors) { // CHANGE: add && !tangent
+									// This case was already generated.
+									continue;
+								}
+
+								pipeline_key.color_pass_flags = base_color_pass_flags;
+
+								if (albedo) {
+									pipeline_key.color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_ALBEDO;
+								}
+
+								if (tangent) {
+									pipeline_key.color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_TANGENT;
+								}
+
+								if (separate_specular) {
+									pipeline_key.color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_SEPARATE_SPECULAR;
+								}
+
+								if (motion_vectors) {
+									pipeline_key.color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_MOTION_VECTORS;
+								}
+
+								pipeline_key.framebuffer_format_id = _get_color_framebuffer_format_for_pipeline(buffers_color_format, buffers_can_be_storage, RD::TextureSamples(p_global.texture_samples), albedo, tangent, separate_specular, motion_vectors, view_count);
+								_mesh_compile_pipeline_for_surface(p_surface.shader, p_surface.mesh_surface, true, p_surface.instanced, p_source, pipeline_key, r_pipeline_pairs);
 							}
-
-							pipeline_key.color_pass_flags = base_color_pass_flags;
-
-							if (albedo) {
-								pipeline_key.color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_ALBEDO;
-							}
-
-							if (separate_specular) {
-								pipeline_key.color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_SEPARATE_SPECULAR;
-							}
-
-							if (motion_vectors) {
-								pipeline_key.color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_MOTION_VECTORS;
-							}
-
-							pipeline_key.framebuffer_format_id = _get_color_framebuffer_format_for_pipeline(buffers_color_format, buffers_can_be_storage, RD::TextureSamples(p_global.texture_samples), albedo, separate_specular, motion_vectors, view_count);
-							_mesh_compile_pipeline_for_surface(p_surface.shader, p_surface.mesh_surface, true, p_surface.instanced, p_source, pipeline_key, r_pipeline_pairs);
 						}
 					}
 				}

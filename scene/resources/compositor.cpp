@@ -65,6 +65,10 @@ void CompositorEffect::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_needs_albedo"), &CompositorEffect::get_needs_albedo);
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "needs_albedo"), "set_needs_albedo", "get_needs_albedo");
 
+	ClassDB::bind_method(D_METHOD("set_needs_tangent", "enable"), &CompositorEffect::set_needs_tangent);
+	ClassDB::bind_method(D_METHOD("get_needs_tangent"), &CompositorEffect::get_needs_tangent);
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "needs_tangent"), "set_needs_tangent", "get_needs_tangent");
+
 	ClassDB::bind_method(D_METHOD("set_needs_separate_specular", "enable"), &CompositorEffect::set_needs_separate_specular);
 	ClassDB::bind_method(D_METHOD("get_needs_separate_specular"), &CompositorEffect::get_needs_separate_specular);
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "needs_separate_specular"), "set_needs_separate_specular", "get_needs_separate_specular");
@@ -93,6 +97,10 @@ void CompositorEffect::_validate_property(PropertyInfo &p_property) const {
 			p_property.usage = PROPERTY_USAGE_NONE;
 		}
 	} else if (p_property.name == "needs_albedo") {
+		if (effect_callback_type == EFFECT_CALLBACK_TYPE_PRE_OPAQUE) {
+			p_property.usage = PROPERTY_USAGE_NONE;
+		}
+	} else if (p_property.name == "needs_tangent") {
 		if (effect_callback_type == EFFECT_CALLBACK_TYPE_PRE_OPAQUE) {
 			p_property.usage = PROPERTY_USAGE_NONE;
 		}
@@ -197,6 +205,16 @@ void CompositorEffect::set_needs_albedo(bool p_enabled) {
 }
 bool CompositorEffect::get_needs_albedo() const {
 	return needs_albedo;
+}
+
+void CompositorEffect::set_needs_tangent(bool p_enabled) {
+	needs_tangent = p_enabled;
+	if (rid.is_valid()) {
+		RenderingServer::get_singleton()->compositor_effect_set_flag(rid, RSE::CompositorEffectFlags::COMPOSITOR_EFFECT_FLAG_NEEDS_TANGENT, needs_tangent);
+	}
+}
+bool CompositorEffect::get_needs_tangent() const {
+	return needs_tangent;
 }
 
 void CompositorEffect::set_needs_separate_specular(bool p_enabled) {
