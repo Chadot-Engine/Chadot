@@ -2922,6 +2922,11 @@
 			[b]Note:[/b] TAA is only supported in the Forward+ rendering method, not Mobile or Compatibility.
 			[b]Note:[/b] This property is only read when the project starts. To set TAA at runtime, set [member Viewport.use_taa] on the root [Viewport] instead, or use [method RenderingServer.viewport_set_use_taa].
 		</member>
+		<member name="rendering/anti_aliasing/quality/jitter_multiplier" type="float" setter="" getter="" default="1.0">
+			Scales the camera jitter used by temporal antialiasing ([member rendering/anti_aliasing/quality/use_taa]) and temporal 3D scaling. A value of [code]0.0[/code] disables jitter entirely, which also disables the temporal accumulation that TAA and upscalers like FSR2 and DLSS rely on.
+			[b]Note:[/b] Reducing or disabling jitter degrades the antialiasing quality of TAA and temporal upscalers.
+			[b]Note:[/b] This property is only read when the project starts. Changing it requires restarting the project.
+		</member>
 		<member name="rendering/anti_aliasing/screen_space_roughness_limiter/amount" type="float" setter="" getter="" default="0.25">
 			[b]Note:[/b] This property is only read when the project starts. To control the screen-space roughness limiter at runtime, call [method RenderingServer.screen_space_roughness_limiter_set_active] instead.
 		</member>

@@ -317,13 +317,15 @@ void RendererViewport::_configure_3d_render_buffers(Viewport *p_viewport) {
 			}
 
 			uint32_t jitter_phase_count = 0;
+			const float jitter_multiplier = GLOBAL_GET("rendering/anti_aliasing/quality/jitter_multiplier");
+
 			if (scaling_type == RSE::VIEWPORT_SCALING_3D_TYPE_TEMPORAL) {
 				// Implementation has been copied from ffxFsr2GetJitterPhaseCount.
 				// Also used for MetalFX Temporal scaling.
-				jitter_phase_count = uint32_t(8.0f * std::pow(float(target_width) / render_width, 2.0f));
+				jitter_phase_count = uint32_t(8.0f * std::pow(float(target_width) / render_width, 2.0f) * jitter_multiplier);
 			} else if (use_taa) {
 				// Default jitter count for TAA.
-				jitter_phase_count = 16;
+				jitter_phase_count = uint32_t(16.0f * jitter_multiplier);
 			}
 
 			p_viewport->internal_size = Size2(render_width, render_height);

@@ -2158,6 +2158,8 @@ SceneTree::SceneTree() {
 	const bool use_taa = GLOBAL_DEF_BASIC("rendering/anti_aliasing/quality/use_taa", false);
 	root->set_use_taa(use_taa);
 
+	GLOBAL_DEF(PropertyInfo(Variant::FLOAT, "rendering/anti_aliasing/quality/jitter_multiplier", PROPERTY_HINT_RANGE, "0.0,2.0,0.01", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), 1.0);
+
 	const bool use_debanding = GLOBAL_GET("rendering/anti_aliasing/quality/use_debanding");
 	root->set_use_debanding(use_debanding);
 
