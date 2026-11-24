@@ -18,6 +18,12 @@ if env["tests"]:
     env_main.Append(CPPDEFINES=["TESTS_ENABLED"])
 
 env_main.CommandNoCache(
+    "#misc/logo/splash_screen_png.gen.h",
+    "#misc/logo/splash_screen.png",
+    env.Run(main_builders.make_embedded_buffer("splash_screen_png")),
+)
+
+env_main.CommandNoCache(
     "#main/splash.gen.h",
     "#main/splash.png",
     env.Run(main_builders.make_splash),

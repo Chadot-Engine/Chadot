@@ -2,6 +2,19 @@
 
 import methods
 
+def make_embedded_buffer(name):
+    def builder(target, source, env):
+        buffer = methods.get_buffer(str(source[0]))
+
+        with methods.generated_wrapper(str(target[0])) as file:
+            file.write(f"""\
+inline constexpr const unsigned char {name}[] = {{
+	{methods.format_buffer(buffer, 1)}
+}};
+""")
+
+    return builder
+
 
 def make_splash(target, source, env):
     buffer = methods.get_buffer(str(source[0]))

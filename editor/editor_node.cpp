@@ -157,6 +157,7 @@
 #include "editor/translations/packed_scene_translation_parser_plugin.h"
 #include "editor/version_control/version_control_editor_plugin.h"
 #include "main/main.h"
+#include "main/splash_screen.h"
 #include "scene/2d/node_2d.h"
 #include "scene/3d/bone_attachment_3d.h"
 #include "scene/animation/animation_tree.h"
@@ -1618,6 +1619,9 @@ void EditorNode::_sources_changed(bool p_exist) {
 		}
 
 		get_tree()->create_timer(1.0f)->connect("timeout", callable_mp(this, &EditorNode::_remove_lock_file));
+
+		// Dispose Editor Splash Screen
+		destroy_editor_splash_screen();
 	}
 }
 

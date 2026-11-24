@@ -563,6 +563,11 @@ Copyright: 1997-2007, University of Cambridge
  2009-2024, Zoltan Herczeg
 License: BSD-3-clause
 
+Files: thirdparty/picofb/*
+Comment: picofb.h
+Copyright: 2025 Arin Upadhyay
+License: Expat
+
 Files: thirdparty/re-spirv/*
 Comment: re-spirv
 Copyright: 2024, renderbag and contributors

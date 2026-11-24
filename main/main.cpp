@@ -132,6 +132,8 @@
 #include "editor/settings/editor_settings.h"
 #include "editor/translations/editor_translation.h"
 
+#include "main/splash_screen.h"
+
 #if defined(TOOLS_ENABLED) && !defined(NO_EDITOR_SPLASH)
 #include "main/splash_editor.gen.h"
 #endif
@@ -1564,8 +1566,10 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			}
 #ifdef TOOLS_ENABLED
 		} else if (arg == "-e" || arg == "--editor") { // starts editor
-
 			editor = true;
+
+			// Create Editor Splash Screen
+			create_editor_splash_screen();
 		} else if (arg == "-p" || arg == "--project-manager") { // starts project manager
 			project_manager = true;
 		} else if (arg == "--recovery-mode") { // Enables recovery mode.

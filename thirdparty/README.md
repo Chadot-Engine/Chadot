@@ -508,7 +508,7 @@ Files generated from upstream source:
   for instructions).
 
 1. Download and extract both `icu4c-{version}-src.tgz` and `icu4c-{version}-data.zip`
-  (replace `data` subfolder from the main source archive)
+    (replace `data` subfolder from the main source archive)
 2. Build ICU with default options: `./runConfigureICU {PLATFORM} && make`
 3. Reconfigure ICU with custom data config:
    `ICU_DATA_FILTER_FILE={GODOT_SOURCE}/thirdparty/icu4c/godot_data.json ./runConfigureICU {PLATFORM} --with-data-packaging=common`
@@ -1012,6 +1012,18 @@ Files extracted from upstream source:
 - `src/pcre2_{jit_char,jit_match,jit_misc,jit_simd,ucptables}_inc.h`
 - `deps/sljit/sljit_src`
 - `AUTHORS.md` and `LICENCE.md`
+
+## **picofb.h**
+
+- Upstream: [https://github.com/shinymonitor/picofb.h](https://github.com/shinymonitor/picofb.h?utm_source=chatgpt.com)
+- Version: Latest commit on `main` (24 commits; no version tag published)
+- License: MIT
+
+Files extracted from upstream source:
+
+\- `picofb.h`
+
+The library is single-header, so its implementation is compiled by defining `PICOFB_IMPLEMENTATION` in exactly one translation unit. The upstream repository identifies the Windows dependencies and MIT license.
 
 
 ## recastnavigation
